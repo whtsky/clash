@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/Dreamacro/clash/adapters/outbound"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/whtsky/clash/adapters/outbound"
+	C "github.com/whtsky/clash/constant"
 
 	"gopkg.in/yaml.v2"
 )

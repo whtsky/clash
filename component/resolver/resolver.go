@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/Dreamacro/clash/component/trie"
+	"github.com/whtsky/clash/component/trie"
 )
 
 var (

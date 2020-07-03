@@ -7,9 +7,9 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/Dreamacro/clash/component/dialer"
-	"github.com/Dreamacro/clash/component/trojan"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/whtsky/clash/component/dialer"
+	"github.com/whtsky/clash/component/trojan"
+	C "github.com/whtsky/clash/constant"
 )
 
 type Trojan struct {

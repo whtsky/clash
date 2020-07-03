@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Dreamacro/clash/adapters/provider"
-	"github.com/Dreamacro/clash/common/structure"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/whtsky/clash/adapters/provider"
+	"github.com/whtsky/clash/common/structure"
+	C "github.com/whtsky/clash/constant"
 )
 
 var (

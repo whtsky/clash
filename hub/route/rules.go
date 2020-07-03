@@ -3,7 +3,7 @@ package route
 import (
 	"net/http"
 
-	"github.com/Dreamacro/clash/tunnel"
+	"github.com/whtsky/clash/tunnel"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"

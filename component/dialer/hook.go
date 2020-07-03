@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/Dreamacro/clash/common/singledo"
+	"github.com/whtsky/clash/common/singledo"
 )
 
 type DialerHookFunc = func(dialer *net.Dialer) error

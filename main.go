@@ -9,12 +9,12 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/Dreamacro/clash/config"
-	"github.com/Dreamacro/clash/constant"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/hub"
-	"github.com/Dreamacro/clash/hub/executor"
-	"github.com/Dreamacro/clash/log"
+	"github.com/whtsky/clash/config"
+	"github.com/whtsky/clash/constant"
+	C "github.com/whtsky/clash/constant"
+	"github.com/whtsky/clash/hub"
+	"github.com/whtsky/clash/hub/executor"
+	"github.com/whtsky/clash/log"
 )
 
 var (
