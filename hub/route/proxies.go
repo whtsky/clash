@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Dreamacro/clash/adapters/outbound"
-	"github.com/Dreamacro/clash/adapters/outboundgroup"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/tunnel"
+	"github.com/whtsky/clash/adapters/outbound"
+	"github.com/whtsky/clash/adapters/outboundgroup"
+	C "github.com/whtsky/clash/constant"
+	"github.com/whtsky/clash/tunnel"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"

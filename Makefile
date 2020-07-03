@@ -2,8 +2,8 @@ NAME=clash
 BINDIR=bin
 VERSION=$(shell git describe --tags || echo "unknown version")
 BUILDTIME=$(shell date -u)
-GOBUILD=CGO_ENABLED=0 go build -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.Version=$(VERSION)" \
-		-X "github.com/Dreamacro/clash/constant.BuildTime=$(BUILDTIME)" \
+GOBUILD=CGO_ENABLED=0 go build -trimpath -ldflags '-X "github.com/whtsky/clash/constant.Version=$(VERSION)" \
+		-X "github.com/whtsky/clash/constant.BuildTime=$(BUILDTIME)" \
 		-w -s'
 
 PLATFORM_LIST = \

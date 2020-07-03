@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/Dreamacro/clash/adapters/outbound"
-	"github.com/Dreamacro/clash/adapters/provider"
-	"github.com/Dreamacro/clash/common/singledo"
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/whtsky/clash/adapters/outbound"
+	"github.com/whtsky/clash/adapters/provider"
+	"github.com/whtsky/clash/common/singledo"
+	C "github.com/whtsky/clash/constant"
 )
 
 type urlTestOption func(*URLTest)

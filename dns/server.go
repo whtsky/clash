@@ -3,8 +3,8 @@ package dns
 import (
 	"net"
 
-	"github.com/Dreamacro/clash/common/sockopt"
-	"github.com/Dreamacro/clash/log"
+	"github.com/whtsky/clash/common/sockopt"
+	"github.com/whtsky/clash/log"
 
 	D "github.com/miekg/dns"
 )

@@ -1,8 +1,9 @@
-module github.com/Dreamacro/clash
+module github.com/whtsky/clash
 
 go 1.14
 
 require (
+	github.com/Dreamacro/clash v1.0.0
 	github.com/Dreamacro/go-shadowsocks2 v0.1.5
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible

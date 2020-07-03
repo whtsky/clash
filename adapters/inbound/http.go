@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	C "github.com/Dreamacro/clash/constant"
+	C "github.com/whtsky/clash/constant"
 )
 
 // HTTPAdapter is a adapter for HTTP connection

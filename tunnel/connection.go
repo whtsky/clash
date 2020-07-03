@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	adapters "github.com/Dreamacro/clash/adapters/inbound"
-	"github.com/Dreamacro/clash/component/resolver"
-	C "github.com/Dreamacro/clash/constant"
+	adapters "github.com/whtsky/clash/adapters/inbound"
+	"github.com/whtsky/clash/component/resolver"
+	C "github.com/whtsky/clash/constant"
 
-	"github.com/Dreamacro/clash/common/pool"
+	"github.com/whtsky/clash/common/pool"
 )
 
 func handleHTTP(request *adapters.HTTPAdapter, outbound net.Conn) {

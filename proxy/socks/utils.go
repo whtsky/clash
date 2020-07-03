@@ -3,8 +3,8 @@ package socks
 import (
 	"net"
 
-	"github.com/Dreamacro/clash/common/pool"
-	"github.com/Dreamacro/clash/component/socks5"
+	"github.com/whtsky/clash/common/pool"
+	"github.com/whtsky/clash/component/socks5"
 )
 
 type packet struct {
