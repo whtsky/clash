@@ -22,7 +22,7 @@ type Vmess struct {
 }
 
 type VmessOption struct {
-	Name           string            `proxy:"name"`
+	Name           C.AdapterName     `proxy:"name"`
 	Server         string            `proxy:"server"`
 	Port           int               `proxy:"port"`
 	UUID           string            `proxy:"uuid"`

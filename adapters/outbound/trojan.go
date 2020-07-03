@@ -18,14 +18,14 @@ type Trojan struct {
 }
 
 type TrojanOption struct {
-	Name           string   `proxy:"name"`
-	Server         string   `proxy:"server"`
-	Port           int      `proxy:"port"`
-	Password       string   `proxy:"password"`
-	ALPN           []string `proxy:"alpn,omitempty"`
-	SNI            string   `proxy:"sni,omitempty"`
-	SkipCertVerify bool     `proxy:"skip-cert-verify,omitempty"`
-	UDP            bool     `proxy:"udp,omitempty"`
+	Name           C.AdapterName `proxy:"name"`
+	Server         string        `proxy:"server"`
+	Port           int           `proxy:"port"`
+	Password       string        `proxy:"password"`
+	ALPN           []string      `proxy:"alpn,omitempty"`
+	SNI            string        `proxy:"sni,omitempty"`
+	SkipCertVerify bool          `proxy:"skip-cert-verify,omitempty"`
+	UDP            bool          `proxy:"udp,omitempty"`
 }
 
 func (t *Trojan) StreamConn(c net.Conn, metadata *C.Metadata) (net.Conn, error) {

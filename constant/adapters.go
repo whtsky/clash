@@ -36,14 +36,14 @@ type Connection interface {
 	AppendToChains(adapter ProxyAdapter)
 }
 
-type Chain []string
+type Chain []AdapterName
 
 func (c Chain) String() string {
 	switch len(c) {
 	case 0:
 		return ""
 	case 1:
-		return c[0]
+		return string(c[0])
 	default:
 		return fmt.Sprintf("%s[%s]", c[len(c)-1], c[0])
 	}
@@ -62,7 +62,7 @@ type PacketConn interface {
 }
 
 type ProxyAdapter interface {
-	Name() string
+	Name() AdapterName
 	Type() AdapterType
 	StreamConn(c net.Conn, metadata *Metadata) (net.Conn, error)
 	DialContext(ctx context.Context, metadata *Metadata) (Conn, error)

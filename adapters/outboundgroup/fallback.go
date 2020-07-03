@@ -16,7 +16,7 @@ type Fallback struct {
 	providers []provider.ProxyProvider
 }
 
-func (f *Fallback) Now() string {
+func (f *Fallback) Now() C.AdapterName {
 	proxy := f.findAliveProxy()
 	return proxy.Name()
 }
@@ -45,7 +45,7 @@ func (f *Fallback) SupportUDP() bool {
 }
 
 func (f *Fallback) MarshalJSON() ([]byte, error) {
-	var all []string
+	var all []C.AdapterName
 	for _, proxy := range f.proxies() {
 		all = append(all, proxy.Name())
 	}
@@ -80,7 +80,7 @@ func (f *Fallback) findAliveProxy() C.Proxy {
 	return f.proxies()[0]
 }
 
-func NewFallback(name string, providers []provider.ProxyProvider) *Fallback {
+func NewFallback(name C.AdapterName, providers []provider.ProxyProvider) *Fallback {
 	return &Fallback{
 		Base:      outbound.NewBase(name, "", C.Fallback, false),
 		single:    singledo.NewSingle(defaultGetProxiesDuration),

@@ -20,7 +20,7 @@ type Snell struct {
 }
 
 type SnellOption struct {
-	Name     string                 `proxy:"name"`
+	Name     C.AdapterName          `proxy:"name"`
 	Server   string                 `proxy:"server"`
 	Port     int                    `proxy:"port"`
 	Psk      string                 `proxy:"psk"`

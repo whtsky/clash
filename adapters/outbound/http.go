@@ -25,7 +25,7 @@ type Http struct {
 }
 
 type HttpOption struct {
-	Name           string `proxy:"name"`
+	Name           C.AdapterName `proxy:"name"`
 	Server         string `proxy:"server"`
 	Port           int    `proxy:"port"`
 	UserName       string `proxy:"username,omitempty"`

@@ -22,9 +22,9 @@ var (
 	tcpQueue     = channels.NewInfiniteChannel()
 	udpQueue     = channels.NewInfiniteChannel()
 	natTable     = nat.New()
-	rules        []C.Rule
-	proxies      = make(map[string]C.Proxy)
-	providers    map[string]provider.ProxyProvider
+	routeRules   []C.Rule
+	proxies      = make(map[C.AdapterName]C.Proxy)
+	providers    map[C.AdapterName]provider.ProxyProvider
 	configMux    sync.RWMutex
 	enhancedMode *dns.Resolver
 
@@ -51,28 +51,28 @@ func AddPacket(packet *inbound.PacketAdapter) {
 
 // Rules return all rules
 func Rules() []C.Rule {
-	return rules
+	return routeRules
 }
 
 // UpdateRules handle update rules
 func UpdateRules(newRules []C.Rule) {
 	configMux.Lock()
-	rules = newRules
+	routeRules = newRules
 	configMux.Unlock()
 }
 
 // Proxies return all proxies
-func Proxies() map[string]C.Proxy {
+func Proxies() map[C.AdapterName]C.Proxy {
 	return proxies
 }
 
 // Providers return all compatible providers
-func Providers() map[string]provider.ProxyProvider {
+func Providers() map[C.AdapterName]provider.ProxyProvider {
 	return providers
 }
 
 // UpdateProxies handle update proxies
-func UpdateProxies(newProxies map[string]C.Proxy, newProviders map[string]provider.ProxyProvider) {
+func UpdateProxies(newProxies map[C.AdapterName]C.Proxy, newProviders map[C.AdapterName]provider.ProxyProvider) {
 	configMux.Lock()
 	proxies = newProxies
 	providers = newProviders
@@ -149,9 +149,7 @@ func preHandleMetadata(metadata *C.Metadata) error {
 	return nil
 }
 
-func resolveMetadata(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
-	var proxy C.Proxy
-	var rule C.Rule
+func resolveMetadata(metadata *C.Metadata) (proxy C.Proxy, rule C.Rule, elapsed time.Duration, err error) {
 	switch mode {
 	case Direct:
 		proxy = proxies["DIRECT"]
@@ -159,13 +157,14 @@ func resolveMetadata(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
 		proxy = proxies["GLOBAL"]
 	// Rule
 	default:
-		var err error
+		start := time.Now()
 		proxy, rule, err = match(metadata)
+		elapsed = time.Since(start)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, elapsed, err
 		}
 	}
-	return proxy, rule, nil
+	return proxy, rule, elapsed, nil
 }
 
 func handleUDPConn(packet *inbound.PacketAdapter) {
@@ -199,7 +198,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	go func() {
 		if !loaded {
 			wg.Add(1)
-			proxy, rule, err := resolveMetadata(metadata)
+			proxy, rule, elapsed, err := resolveMetadata(metadata)
 			if err != nil {
 				log.Warnln("[UDP] Parse metadata failed: %s", err.Error())
 				natTable.Delete(lockKey)
@@ -218,13 +217,29 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 
 			switch true {
 			case rule != nil:
-				log.Infoln("[UDP] %s --> %v match %s using %s", metadata.SourceAddress(), metadata.String(), rule.RuleType().String(), rawPc.Chains().String())
+				log.Infoln(
+					"[UDP] %s --> %v match %s using %s. took %s for rule matching.",
+					metadata.SourceAddress(), metadata.String(), rule.RuleType().String(), rawPc.Chains().String(),
+					elapsed,
+				)
 			case mode == Global:
-				log.Infoln("[UDP] %s --> %v using GLOBAL", metadata.SourceAddress(), metadata.String())
+				log.Infoln(
+					"[UDP] %s --> %v using GLOBAL. took %s for rule matching.",
+					metadata.SourceAddress(), metadata.String(),
+					elapsed,
+				)
 			case mode == Direct:
-				log.Infoln("[UDP] %s --> %v using DIRECT", metadata.SourceAddress(), metadata.String())
+				log.Infoln(
+					"[UDP] %s --> %v using DIRECT. took %s for rule matching.",
+					metadata.SourceAddress(), metadata.String(),
+					elapsed,
+				)
 			default:
-				log.Infoln("[UDP] %s --> %v doesn't match any rule using DIRECT", metadata.SourceAddress(), metadata.String())
+				log.Infoln(
+					"[UDP] %s --> %v doesn't match any rule using DIRECT. took %s for rule matching.",
+					metadata.SourceAddress(), metadata.String(),
+					elapsed,
+				)
 			}
 
 			natTable.Set(key, pc)
@@ -255,7 +270,7 @@ func handleTCPConn(localConn C.ServerAdapter) {
 		return
 	}
 
-	proxy, rule, err := resolveMetadata(metadata)
+	proxy, rule, elapsed, err := resolveMetadata(metadata)
 	if err != nil {
 		log.Warnln("Parse metadata failed: %v", err)
 		return
@@ -271,13 +286,25 @@ func handleTCPConn(localConn C.ServerAdapter) {
 
 	switch true {
 	case rule != nil:
-		log.Infoln("[TCP] %s --> %v match %s using %s", metadata.SourceAddress(), metadata.String(), rule.RuleType().String(), remoteConn.Chains().String())
+		log.Infoln("[TCP] %s --> %v match %s using %s. took %s for rule matching.",
+			metadata.SourceAddress(), metadata.String(), rule.RuleType().String(), remoteConn.Chains().String(),
+			elapsed,
+		)
 	case mode == Global:
-		log.Infoln("[TCP] %s --> %v using GLOBAL", metadata.SourceAddress(), metadata.String())
+		log.Infoln("[TCP] %s --> %v using GLOBAL. took %s for rule matching.",
+			metadata.SourceAddress(), metadata.String(),
+			elapsed,
+		)
 	case mode == Direct:
-		log.Infoln("[TCP] %s --> %v using DIRECT", metadata.SourceAddress(), metadata.String())
+		log.Infoln("[TCP] %s --> %v using DIRECT. took %s for rule matching.",
+			metadata.SourceAddress(), metadata.String(),
+			elapsed,
+		)
 	default:
-		log.Infoln("[TCP] %s --> %v doesn't match any rule using DIRECT", metadata.SourceAddress(), metadata.String())
+		log.Infoln("[TCP] %s --> %v doesn't match any rule using DIRECT. took %s for rule matching.",
+			metadata.SourceAddress(), metadata.String(),
+			elapsed,
+		)
 	}
 
 	switch adapter := localConn.(type) {
@@ -304,7 +331,7 @@ func match(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
 		resolved = true
 	}
 
-	for _, rule := range rules {
+	for _, rule := range routeRules {
 		if !resolved && shouldResolveIP(rule, metadata) {
 			ip, err := resolver.ResolveIP(metadata.Host)
 			if err != nil {
@@ -316,10 +343,10 @@ func match(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
 			resolved = true
 		}
 
-		if rule.Match(metadata) {
-			adapter, ok := proxies[rule.Adapter()]
+		if adapter := rule.Match(metadata); adapter != nil {
+			adapter, ok := proxies[*adapter]
 			if !ok {
-				continue
+				log.Fatalln("Unknown adapter: %s", adapter)
 			}
 
 			if metadata.NetWork == C.UDP && !adapter.SupportUDP() {

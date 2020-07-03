@@ -27,7 +27,7 @@ type proxyProviderSchema struct {
 	HealthCheck healthCheckSchema `provider:"health-check,omitempty"`
 }
 
-func ParseProxyProvider(name string, mapping map[string]interface{}) (ProxyProvider, error) {
+func ParseProxyProvider(name C.AdapterName, mapping map[string]interface{}) (ProxyProvider, error) {
 	decoder := structure.NewDecoder(structure.Option{TagName: "provider", WeaklyTypedInput: true})
 
 	schema := &proxyProviderSchema{}

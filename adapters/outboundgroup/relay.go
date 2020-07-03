@@ -57,7 +57,7 @@ func (r *Relay) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn, 
 }
 
 func (r *Relay) MarshalJSON() ([]byte, error) {
-	var all []string
+	var all []C.AdapterName
 	for _, proxy := range r.rawProxies() {
 		all = append(all, proxy.Name())
 	}
@@ -89,7 +89,7 @@ func (r *Relay) proxies(metadata *C.Metadata) []C.Proxy {
 	return proxies
 }
 
-func NewRelay(name string, providers []provider.ProxyProvider) *Relay {
+func NewRelay(name C.AdapterName, providers []provider.ProxyProvider) *Relay {
 	return &Relay{
 		Base:      outbound.NewBase(name, "", C.Relay, false),
 		single:    singledo.NewSingle(defaultGetProxiesDuration),

@@ -81,8 +81,8 @@ type Config struct {
 	Hosts        *trie.DomainTrie
 	Rules        []C.Rule
 	Users        []auth.AuthUser
-	Proxies      map[string]C.Proxy
-	Providers    map[string]provider.ProxyProvider
+	Proxies      map[C.AdapterName]C.Proxy
+	Providers    map[C.AdapterName]provider.ProxyProvider
 }
 
 type RawDNS struct {
@@ -119,13 +119,13 @@ type RawConfig struct {
 	Secret             string       `yaml:"secret"`
 	Interface          string       `yaml:"interface-name"`
 
-	ProxyProvider map[string]map[string]interface{} `yaml:"proxy-providers"`
-	Hosts         map[string]string                 `yaml:"hosts"`
-	DNS           RawDNS                            `yaml:"dns"`
-	Experimental  Experimental                      `yaml:"experimental"`
-	Proxy         []map[string]interface{}          `yaml:"proxies"`
-	ProxyGroup    []map[string]interface{}          `yaml:"proxy-groups"`
-	Rule          []string                          `yaml:"rules"`
+	ProxyProvider map[C.AdapterName]map[string]interface{} `yaml:"proxy-providers"`
+	Hosts         map[string]string                        `yaml:"hosts"`
+	DNS           RawDNS                                   `yaml:"dns"`
+	Experimental  Experimental                             `yaml:"experimental"`
+	Proxy         []map[string]interface{}                 `yaml:"proxies"`
+	ProxyGroup    []map[string]interface{}                 `yaml:"proxy-groups"`
+	Rule          []string                                 `yaml:"rules"`
 }
 
 // Parse config
@@ -245,10 +245,10 @@ func parseGeneral(cfg *RawConfig) (*General, error) {
 	}, nil
 }
 
-func parseProxies(cfg *RawConfig) (proxies map[string]C.Proxy, providersMap map[string]provider.ProxyProvider, err error) {
-	proxies = make(map[string]C.Proxy)
-	providersMap = make(map[string]provider.ProxyProvider)
-	proxyList := []string{}
+func parseProxies(cfg *RawConfig) (proxies map[C.AdapterName]C.Proxy, providersMap map[C.AdapterName]provider.ProxyProvider, err error) {
+	proxies = make(map[C.AdapterName]C.Proxy)
+	providersMap = make(map[C.AdapterName]provider.ProxyProvider)
+	proxyList := []C.AdapterName{}
 	proxiesConfig := cfg.Proxy
 	groupsConfig := cfg.ProxyGroup
 	providersConfig := cfg.ProxyProvider
@@ -277,7 +277,7 @@ func parseProxies(cfg *RawConfig) (proxies map[string]C.Proxy, providersMap map[
 		if !existName {
 			return nil, nil, fmt.Errorf("ProxyGroup %d: missing name", idx)
 		}
-		proxyList = append(proxyList, groupName)
+		proxyList = append(proxyList, C.AdapterName(groupName))
 	}
 
 	// check if any loop exists and sort the ProxyGroups
@@ -346,7 +346,7 @@ func parseProxies(cfg *RawConfig) (proxies map[string]C.Proxy, providersMap map[
 	return proxies, providersMap, nil
 }
 
-func parseRules(cfg *RawConfig, proxies map[string]C.Proxy) ([]C.Rule, error) {
+func parseRules(cfg *RawConfig, proxies map[C.AdapterName]C.Proxy) ([]C.Rule, error) {
 	rules := []C.Rule{}
 	rulesConfig := cfg.Rule
 
@@ -355,19 +355,19 @@ func parseRules(cfg *RawConfig, proxies map[string]C.Proxy) ([]C.Rule, error) {
 		rule := trimArr(strings.Split(line, ","))
 		var (
 			payload string
-			target  string
+			target  C.AdapterName
 			params  = []string{}
 		)
 
 		switch l := len(rule); {
 		case l == 2:
-			target = rule[1]
+			target = C.AdapterName(rule[1])
 		case l == 3:
 			payload = rule[1]
-			target = rule[2]
+			target = C.AdapterName(rule[2])
 		case l >= 4:
 			payload = rule[1]
-			target = rule[2]
+			target = C.AdapterName(rule[2])
 			params = rule[3:]
 		default:
 			return nil, fmt.Errorf("Rules[%d] [%s] error: format invalid", idx, line)

@@ -39,7 +39,7 @@ func parseProxyName(next http.Handler) http.Handler {
 
 func findProxyByName(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		name := r.Context().Value(CtxKeyProxyName).(string)
+		name := C.AdapterName(r.Context().Value(CtxKeyProxyName).(string))
 		proxies := tunnel.Proxies()
 		proxy, exist := proxies[name]
 		if !exist {
@@ -66,7 +66,7 @@ func getProxy(w http.ResponseWriter, r *http.Request) {
 }
 
 type UpdateProxyRequest struct {
-	Name string `json:"name"`
+	Name C.AdapterName `json:"name"`
 }
 
 func updateProxy(w http.ResponseWriter, r *http.Request) {

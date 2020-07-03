@@ -3,28 +3,32 @@ package rules
 import (
 	"strings"
 
+	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type DomainKeyword struct {
 	keyword string
-	adapter string
+	adapter constant.AdapterName
 }
 
 func (dk *DomainKeyword) RuleType() C.RuleType {
 	return C.DomainKeyword
 }
 
-func (dk *DomainKeyword) Match(metadata *C.Metadata) bool {
+func (dk *DomainKeyword) Match(metadata *C.Metadata) *C.AdapterName {
 	if metadata.AddrType != C.AtypDomainName {
-		return false
+		return nil
 	}
 	domain := metadata.Host
-	return strings.Contains(domain, dk.keyword)
+	if strings.Contains(domain, dk.keyword) {
+		return &dk.adapter
+	}
+	return nil
 }
 
-func (dk *DomainKeyword) Adapter() string {
-	return dk.adapter
+func (d *DomainKeyword) Adapter() C.AdapterName {
+	return d.adapter
 }
 
 func (dk *DomainKeyword) Payload() string {
@@ -35,7 +39,7 @@ func (dk *DomainKeyword) NoResolveIP() bool {
 	return true
 }
 
-func NewDomainKeyword(keyword string, adapter string) *DomainKeyword {
+func NewDomainKeyword(keyword string, adapter constant.AdapterName) *DomainKeyword {
 	return &DomainKeyword{
 		keyword: strings.ToLower(keyword),
 		adapter: adapter,

@@ -3,6 +3,7 @@ package route
 import (
 	"net/http"
 
+	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/tunnel"
 
 	"github.com/go-chi/chi"
@@ -16,9 +17,9 @@ func ruleRouter() http.Handler {
 }
 
 type Rule struct {
-	Type    string `json:"type"`
-	Payload string `json:"payload"`
-	Proxy   string `json:"proxy"`
+	Type    string        `json:"type"`
+	Payload string        `json:"payload"`
+	Proxy   C.AdapterName `json:"proxy"`
 }
 
 func getRules(w http.ResponseWriter, r *http.Request) {

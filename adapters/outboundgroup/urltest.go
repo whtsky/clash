@@ -29,7 +29,7 @@ type URLTest struct {
 	providers  []provider.ProxyProvider
 }
 
-func (u *URLTest) Now() string {
+func (u *URLTest) Now() C.AdapterName {
 	return u.fast().Name()
 }
 
@@ -98,7 +98,7 @@ func (u *URLTest) SupportUDP() bool {
 }
 
 func (u *URLTest) MarshalJSON() ([]byte, error) {
-	var all []string
+	var all []C.AdapterName
 	for _, proxy := range u.proxies() {
 		all = append(all, proxy.Name())
 	}
@@ -122,7 +122,7 @@ func parseURLTestOption(config map[string]interface{}) []urlTestOption {
 	return opts
 }
 
-func NewURLTest(name string, providers []provider.ProxyProvider, options ...urlTestOption) *URLTest {
+func NewURLTest(name C.AdapterName, providers []provider.ProxyProvider, options ...urlTestOption) *URLTest {
 	urlTest := &URLTest{
 		Base:       outbound.NewBase(name, "", C.URLTest, false),
 		single:     singledo.NewSingle(defaultGetProxiesDuration),

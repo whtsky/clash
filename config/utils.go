@@ -6,6 +6,7 @@ import (
 
 	"github.com/whtsky/clash/adapters/outboundgroup"
 	"github.com/whtsky/clash/common/structure"
+	C "github.com/whtsky/clash/constant"
 )
 
 func trimArr(arr []string) (r []string) {
@@ -37,11 +38,11 @@ func proxyGroupsDagSort(groupsConfig []map[string]interface{}) error {
 		// `outdegree` and `from` are used in loop locating
 		outdegree int
 		option    *outboundgroup.GroupCommonOption
-		from      []string
+		from      []C.AdapterName
 	}
 
 	decoder := structure.NewDecoder(structure.Option{TagName: "group", WeaklyTypedInput: true})
-	graph := make(map[string]*graphNode)
+	graph := make(map[C.AdapterName]*graphNode)
 
 	// Step 1.1 build dependency graph
 	for _, mapping := range groupsConfig {
@@ -72,7 +73,7 @@ func proxyGroupsDagSort(groupsConfig []map[string]interface{}) error {
 	// Step 1.2 Topological Sort
 	// topological index of **ProxyGroup**
 	index := 0
-	queue := make([]string, 0)
+	queue := make([]C.AdapterName, 0)
 	for name, node := range graph {
 		// in the begning, put nodes that have `node.indegree == 0` into queue.
 		if node.indegree == 0 {
@@ -122,13 +123,13 @@ func proxyGroupsDagSort(groupsConfig []map[string]interface{}) error {
 			node.outdegree++
 			child := graph[proxy]
 			if child.from == nil {
-				child.from = make([]string, 0, child.indegree)
+				child.from = make([]C.AdapterName, 0, child.indegree)
 			}
 			child.from = append(child.from, name)
 		}
 	}
 	// Step 2.2 remove nodes outside the loop. so that we have only the loops remain in `graph`
-	queue = make([]string, 0)
+	queue = make([]C.AdapterName, 0)
 	// initialize queue with node have outdegree == 0
 	for name, node := range graph {
 		if node.outdegree == 0 {
@@ -148,7 +149,7 @@ func proxyGroupsDagSort(groupsConfig []map[string]interface{}) error {
 		delete(graph, name)
 	}
 	// Step 2.3 report the elements in loop
-	loopElements := make([]string, 0, len(graph))
+	loopElements := make([]C.AdapterName, 0, len(graph))
 	for name := range graph {
 		loopElements = append(loopElements, name)
 		delete(graph, name)
