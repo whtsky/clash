@@ -3,11 +3,12 @@ package rules
 import (
 	"strconv"
 
+	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type Port struct {
-	adapter  string
+	adapter  C.AdapterName
 	port     string
 	isSource bool
 }
@@ -19,15 +20,19 @@ func (p *Port) RuleType() C.RuleType {
 	return C.DstPort
 }
 
-func (p *Port) Match(metadata *C.Metadata) bool {
+func (p *Port) Match(metadata *C.Metadata) *C.AdapterName {
+	port := metadata.DstPort
 	if p.isSource {
-		return metadata.SrcPort == p.port
+		port = metadata.SrcPort
 	}
-	return metadata.DstPort == p.port
+	if port == p.port {
+		return &p.adapter
+	}
+	return nil
 }
 
-func (p *Port) Adapter() string {
-	return p.adapter
+func (d *Port) Adapter() C.AdapterName {
+	return d.adapter
 }
 
 func (p *Port) Payload() string {
@@ -38,7 +43,7 @@ func (p *Port) NoResolveIP() bool {
 	return true
 }
 
-func NewPort(port string, adapter string, isSource bool) (*Port, error) {
+func NewPort(port string, adapter constant.AdapterName, isSource bool) (*Port, error) {
 	_, err := strconv.Atoi(port)
 	if err != nil {
 		return nil, errPayload

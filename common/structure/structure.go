@@ -29,9 +29,13 @@ func NewDecoder(option Option) *Decoder {
 }
 
 // Decode transform a map[string]interface{} to a struct
-func (d *Decoder) Decode(src map[string]interface{}, dst interface{}) error {
+func (d *Decoder) Decode(input interface{}, dst interface{}) error {
+	src, ok := input.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Decode must receive a map[string]interface{} input")
+	}
 	if reflect.TypeOf(dst).Kind() != reflect.Ptr {
-		return fmt.Errorf("Decode must recive a ptr struct")
+		return fmt.Errorf("Decode must receive a ptr struct")
 	}
 	t := reflect.TypeOf(dst).Elem()
 	v := reflect.ValueOf(dst).Elem()

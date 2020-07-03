@@ -135,7 +135,7 @@ func updateHosts(tree *trie.DomainTrie) {
 	resolver.DefaultHosts = tree
 }
 
-func updateProxies(proxies map[string]C.Proxy, providers map[string]provider.ProxyProvider) {
+func updateProxies(proxies map[C.AdapterName]C.Proxy, providers map[C.AdapterName]provider.ProxyProvider) {
 	tunnel.UpdateProxies(proxies, providers)
 }
 

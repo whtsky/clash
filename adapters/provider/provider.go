@@ -39,7 +39,7 @@ func (pt ProviderType) String() string {
 
 // Provider interface
 type Provider interface {
-	Name() string
+	Name() C.AdapterName
 	VehicleType() VehicleType
 	Type() ProviderType
 	Initial() error
@@ -78,7 +78,7 @@ func (pp *proxySetProvider) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (pp *proxySetProvider) Name() string {
+func (pp *proxySetProvider) Name() C.AdapterName {
 	return pp.name
 }
 
@@ -152,7 +152,7 @@ func stopProxyProvider(pd *ProxySetProvider) {
 	pd.fetcher.Destroy()
 }
 
-func NewProxySetProvider(name string, interval time.Duration, vehicle Vehicle, hc *HealthCheck) *ProxySetProvider {
+func NewProxySetProvider(name C.AdapterName, interval time.Duration, vehicle Vehicle, hc *HealthCheck) *ProxySetProvider {
 	if hc.auto() {
 		go hc.process()
 	}
@@ -181,7 +181,7 @@ type CompatibleProvider struct {
 }
 
 type compatibleProvider struct {
-	name        string
+	name        C.AdapterName
 	healthCheck *HealthCheck
 	proxies     []C.Proxy
 }
@@ -195,7 +195,7 @@ func (cp *compatibleProvider) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (cp *compatibleProvider) Name() string {
+func (cp *compatibleProvider) Name() C.AdapterName {
 	return cp.name
 }
 
@@ -227,7 +227,7 @@ func stopCompatibleProvider(pd *CompatibleProvider) {
 	pd.healthCheck.close()
 }
 
-func NewCompatibleProvider(name string, proxies []C.Proxy, hc *HealthCheck) (*CompatibleProvider, error) {
+func NewCompatibleProvider(name C.AdapterName, proxies []C.Proxy, hc *HealthCheck) (*CompatibleProvider, error) {
 	if len(proxies) == 0 {
 		return nil, errors.New("Provider need one proxy at least")
 	}

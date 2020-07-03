@@ -29,7 +29,7 @@ type ShadowSocks struct {
 }
 
 type ShadowSocksOption struct {
-	Name       string                 `proxy:"name"`
+	Name       C.AdapterName `proxy:"name"`
 	Server     string                 `proxy:"server"`
 	Port       int                    `proxy:"port"`
 	Password   string                 `proxy:"password"`

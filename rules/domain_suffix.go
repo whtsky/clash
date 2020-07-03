@@ -3,28 +3,32 @@ package rules
 import (
 	"strings"
 
+	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type DomainSuffix struct {
 	suffix  string
-	adapter string
+	adapter constant.AdapterName
 }
 
 func (ds *DomainSuffix) RuleType() C.RuleType {
 	return C.DomainSuffix
 }
 
-func (ds *DomainSuffix) Match(metadata *C.Metadata) bool {
+func (ds *DomainSuffix) Match(metadata *C.Metadata) *C.AdapterName {
 	if metadata.AddrType != C.AtypDomainName {
-		return false
+		return nil
 	}
 	domain := metadata.Host
-	return strings.HasSuffix(domain, "."+ds.suffix) || domain == ds.suffix
+	if strings.HasSuffix(domain, "."+ds.suffix) || domain == ds.suffix {
+		return &ds.adapter
+	}
+	return nil
 }
 
-func (ds *DomainSuffix) Adapter() string {
-	return ds.adapter
+func (d *DomainSuffix) Adapter() C.AdapterName {
+	return d.adapter
 }
 
 func (ds *DomainSuffix) Payload() string {
@@ -35,7 +39,7 @@ func (ds *DomainSuffix) NoResolveIP() bool {
 	return true
 }
 
-func NewDomainSuffix(suffix string, adapter string) *DomainSuffix {
+func NewDomainSuffix(suffix string, adapter constant.AdapterName) *DomainSuffix {
 	return &DomainSuffix{
 		suffix:  strings.ToLower(suffix),
 		adapter: adapter,

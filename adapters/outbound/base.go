@@ -17,13 +17,13 @@ var (
 )
 
 type Base struct {
-	name string
+	name C.AdapterName
 	addr string
 	tp   C.AdapterType
 	udp  bool
 }
 
-func (b *Base) Name() string {
+func (b *Base) Name() C.AdapterName {
 	return b.name
 }
 
@@ -57,7 +57,7 @@ func (b *Base) Unwrap(metadata *C.Metadata) C.Proxy {
 	return nil
 }
 
-func NewBase(name string, addr string, tp C.AdapterType, udp bool) *Base {
+func NewBase(name C.AdapterName, addr string, tp C.AdapterType, udp bool) *Base {
 	return &Base{name, addr, tp, udp}
 }
 
@@ -75,7 +75,7 @@ func (c *conn) AppendToChains(a C.ProxyAdapter) {
 }
 
 func NewConn(c net.Conn, a C.ProxyAdapter) C.Conn {
-	return &conn{c, []string{a.Name()}}
+	return &conn{c, []C.AdapterName{a.Name()}}
 }
 
 type packetConn struct {
@@ -92,7 +92,7 @@ func (c *packetConn) AppendToChains(a C.ProxyAdapter) {
 }
 
 func newPacketConn(pc net.PacketConn, a C.ProxyAdapter) C.PacketConn {
-	return &packetConn{pc, []string{a.Name()}}
+	return &packetConn{pc, []C.AdapterName{a.Name()}}
 }
 
 type Proxy struct {

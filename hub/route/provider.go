@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/whtsky/clash/adapters/provider"
+	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/tunnel"
 
 	"github.com/go-chi/chi"
@@ -62,7 +63,7 @@ func parseProviderName(next http.Handler) http.Handler {
 
 func findProviderByName(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		name := r.Context().Value(CtxKeyProviderName).(string)
+		name := C.AdapterName(r.Context().Value(CtxKeyProviderName).(string))
 		providers := tunnel.Providers()
 		provider, exist := providers[name]
 		if !exist {

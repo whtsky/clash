@@ -14,7 +14,7 @@ import (
 type Selector struct {
 	*outbound.Base
 	single    *singledo.Single
-	selected  string
+	selected  C.AdapterName
 	providers []provider.ProxyProvider
 }
 
@@ -39,7 +39,7 @@ func (s *Selector) SupportUDP() bool {
 }
 
 func (s *Selector) MarshalJSON() ([]byte, error) {
-	var all []string
+	var all []C.AdapterName
 	for _, proxy := range getProvidersProxies(s.providers) {
 		all = append(all, proxy.Name())
 	}
@@ -51,11 +51,11 @@ func (s *Selector) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (s *Selector) Now() string {
+func (s *Selector) Now() C.AdapterName {
 	return s.selectedProxy().Name()
 }
 
-func (s *Selector) Set(name string) error {
+func (s *Selector) Set(name C.AdapterName) error {
 	for _, proxy := range getProvidersProxies(s.providers) {
 		if proxy.Name() == name {
 			s.selected = name
@@ -86,7 +86,7 @@ func (s *Selector) selectedProxy() C.Proxy {
 	return elm.(C.Proxy)
 }
 
-func NewSelector(name string, providers []provider.ProxyProvider) *Selector {
+func NewSelector(name C.AdapterName, providers []provider.ProxyProvider) *Selector {
 	selected := providers[0].Proxies()[0].Name()
 	return &Selector{
 		Base:      outbound.NewBase(name, "", C.Selector, false),

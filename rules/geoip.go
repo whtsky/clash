@@ -2,12 +2,13 @@ package rules
 
 import (
 	"github.com/whtsky/clash/component/mmdb"
+	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type GEOIP struct {
 	country     string
-	adapter     string
+	adapter     constant.AdapterName
 	noResolveIP bool
 }
 
@@ -15,17 +16,20 @@ func (g *GEOIP) RuleType() C.RuleType {
 	return C.GEOIP
 }
 
-func (g *GEOIP) Match(metadata *C.Metadata) bool {
+func (g *GEOIP) Match(metadata *C.Metadata) *C.AdapterName {
 	ip := metadata.DstIP
 	if ip == nil {
-		return false
+		return nil
 	}
 	record, _ := mmdb.Instance().Country(ip)
-	return record.Country.IsoCode == g.country
+	if record.Country.IsoCode == g.country {
+		return &g.adapter
+	}
+	return nil
 }
 
-func (g *GEOIP) Adapter() string {
-	return g.adapter
+func (d *GEOIP) Adapter() C.AdapterName {
+	return d.adapter
 }
 
 func (g *GEOIP) Payload() string {
@@ -36,7 +40,7 @@ func (g *GEOIP) NoResolveIP() bool {
 	return g.noResolveIP
 }
 
-func NewGEOIP(country string, adapter string, noResolveIP bool) *GEOIP {
+func NewGEOIP(country string, adapter constant.AdapterName, noResolveIP bool) *GEOIP {
 	geoip := &GEOIP{
 		country:     country,
 		adapter:     adapter,

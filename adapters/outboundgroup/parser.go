@@ -19,15 +19,15 @@ var (
 )
 
 type GroupCommonOption struct {
-	Name     string   `group:"name"`
-	Type     string   `group:"type"`
-	Proxies  []string `group:"proxies,omitempty"`
-	Use      []string `group:"use,omitempty"`
-	URL      string   `group:"url,omitempty"`
-	Interval int      `group:"interval,omitempty"`
+	Name     C.AdapterName   `group:"name"`
+	Type     string          `group:"type"`
+	Proxies  []C.AdapterName `group:"proxies,omitempty"`
+	Use      []C.AdapterName `group:"use,omitempty"`
+	URL      string          `group:"url,omitempty"`
+	Interval int             `group:"interval,omitempty"`
 }
 
-func ParseProxyGroup(config map[string]interface{}, proxyMap map[string]C.Proxy, providersMap map[string]provider.ProxyProvider) (C.ProxyAdapter, error) {
+func ParseProxyGroup(config map[string]interface{}, proxyMap map[C.AdapterName]C.Proxy, providersMap map[C.AdapterName]provider.ProxyProvider) (C.ProxyAdapter, error) {
 	decoder := structure.NewDecoder(structure.Option{TagName: "group", WeaklyTypedInput: true})
 
 	groupOption := &GroupCommonOption{}
@@ -118,7 +118,7 @@ func ParseProxyGroup(config map[string]interface{}, proxyMap map[string]C.Proxy,
 	return group, nil
 }
 
-func getProxies(mapping map[string]C.Proxy, list []string) ([]C.Proxy, error) {
+func getProxies(mapping map[C.AdapterName]C.Proxy, list []C.AdapterName) ([]C.Proxy, error) {
 	var ps []C.Proxy
 	for _, name := range list {
 		p, ok := mapping[name]
@@ -130,7 +130,7 @@ func getProxies(mapping map[string]C.Proxy, list []string) ([]C.Proxy, error) {
 	return ps, nil
 }
 
-func getProviders(mapping map[string]provider.ProxyProvider, list []string) ([]provider.ProxyProvider, error) {
+func getProviders(mapping map[C.AdapterName]provider.ProxyProvider, list []C.AdapterName) ([]provider.ProxyProvider, error) {
 	var ps []provider.ProxyProvider
 	for _, name := range list {
 		p, ok := mapping[name]

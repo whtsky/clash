@@ -6,7 +6,7 @@ import (
 	C "github.com/whtsky/clash/constant"
 )
 
-func ParseRule(tp, payload, target string, params []string) (C.Rule, error) {
+func ParseRule(tp, payload string, target C.AdapterName, params []string) (C.Rule, error) {
 	var (
 		parseErr error
 		parsed   C.Rule

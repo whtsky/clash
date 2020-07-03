@@ -105,7 +105,7 @@ func (lb *LoadBalance) proxies() []C.Proxy {
 }
 
 func (lb *LoadBalance) MarshalJSON() ([]byte, error) {
-	var all []string
+	var all []C.AdapterName
 	for _, proxy := range lb.proxies() {
 		all = append(all, proxy.Name())
 	}
@@ -115,7 +115,7 @@ func (lb *LoadBalance) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func NewLoadBalance(name string, providers []provider.ProxyProvider) *LoadBalance {
+func NewLoadBalance(name C.AdapterName, providers []provider.ProxyProvider) *LoadBalance {
 	return &LoadBalance{
 		Base:      outbound.NewBase(name, "", C.LoadBalance, false),
 		single:    singledo.NewSingle(defaultGetProxiesDuration),

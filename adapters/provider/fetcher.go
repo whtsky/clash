@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/log"
 )
 
@@ -19,7 +20,7 @@ var (
 type parser = func([]byte) (interface{}, error)
 
 type fetcher struct {
-	name      string
+	name      C.AdapterName
 	vehicle   Vehicle
 	updatedAt *time.Time
 	ticker    *time.Ticker
@@ -28,7 +29,7 @@ type fetcher struct {
 	onUpdate  func(interface{})
 }
 
-func (f *fetcher) Name() string {
+func (f *fetcher) Name() C.AdapterName {
 	return f.name
 }
 
@@ -154,7 +155,7 @@ func safeWrite(path string, buf []byte) error {
 	return ioutil.WriteFile(path, buf, fileMode)
 }
 
-func newFetcher(name string, interval time.Duration, vehicle Vehicle, parser parser, onUpdate func(interface{})) *fetcher {
+func newFetcher(name C.AdapterName, interval time.Duration, vehicle Vehicle, parser parser, onUpdate func(interface{})) *fetcher {
 	var ticker *time.Ticker
 	if interval != 0 {
 		ticker = time.NewTicker(interval)

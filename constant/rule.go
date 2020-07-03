@@ -13,6 +13,7 @@ const (
 	MATCH
 )
 
+type AdapterName string
 type RuleType int
 
 func (rt RuleType) String() string {
@@ -42,8 +43,8 @@ func (rt RuleType) String() string {
 
 type Rule interface {
 	RuleType() RuleType
-	Match(metadata *Metadata) bool
-	Adapter() string
+	Match(metadata *Metadata) *AdapterName
+	Adapter() AdapterName
 	Payload() string
 	NoResolveIP() bool
 }
