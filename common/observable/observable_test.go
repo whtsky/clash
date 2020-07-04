@@ -3,6 +3,7 @@ package observable
 import (
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -38,20 +39,20 @@ func TestObservable_MutilSubscribe(t *testing.T) {
 	src := NewObservable(iter)
 	ch1, _ := src.Subscribe()
 	ch2, _ := src.Subscribe()
-	count := 0
+	count := int32(0)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 	waitCh := func(ch <-chan interface{}) {
 		for range ch {
-			count++
+			atomic.AddInt32(&count, 1)
 		}
 		wg.Done()
 	}
 	go waitCh(ch1)
 	go waitCh(ch2)
 	wg.Wait()
-	assert.Equal(t, count, 10)
+	assert.EqualValues(t, count, 10)
 }
 
 func TestObservable_UnSubscribe(t *testing.T) {
