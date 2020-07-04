@@ -21,10 +21,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Get dependencies and run test
-        run: |
-          go test -race -parallel=1  ./...
-      - uses: codecov/codecov-action@v1
       - name: Build
         env:
           NAME: clash
@@ -40,3 +36,37 @@ jobs:
           files: bin/*
           draft: true
           prerelease: true
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14.x
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Cache go module
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get dependencies and run test
+        run: |
+          go test -race -coverprofile=profile.out -covermode=atomic $(go list go list ./... | grep -v observable)
+          if [ -f profile.out ]; then
+            cat profile.out >> coverage.txt
+            rm profile.out
+          fi
+          go test -coverprofile=profile.out -covermode=atomic $(go list go list ./... | grep observable)
+          if [ -f profile.out ]; then
+            cat profile.out >> coverage.txt
+            rm profile.out
+          fi
+      - uses: codecov/codecov-action@v1
