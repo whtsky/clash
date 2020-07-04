@@ -23,8 +23,8 @@ jobs:
 
       - name: Get dependencies and run test
         run: |
-          go test -race ./...
-
+          go test -race -parallel=1  ./...
+      - uses: codecov/codecov-action@v1
       - name: Build
         env:
           NAME: clash
