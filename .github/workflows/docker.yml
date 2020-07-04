@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - dev
     tags:
       - "*"
 jobs:
@@ -31,8 +30,8 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
 
-      - name: Docker buildx image and push on dev branch
-        if: github.ref == 'refs/heads/dev'
+      - name: Docker buildx image and push on master branch
+        if: github.ref == 'refs/heads/master'
         run: |
           docker buildx build --output "type=image,push=true" --platform=linux/amd64,linux/arm/v7,linux/arm64 --tag whtsky/clash:dev .
 
