@@ -14,6 +14,7 @@ import (
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/dns"
 	"github.com/whtsky/clash/log"
+	"github.com/whtsky/clash/rules"
 
 	channels "gopkg.in/eapache/channels.v1"
 )
@@ -22,6 +23,7 @@ var (
 	tcpQueue     = channels.NewInfiniteChannel()
 	udpQueue     = channels.NewInfiniteChannel()
 	natTable     = nat.New()
+	rawRules     []C.Rule
 	routeRules   []C.Rule
 	proxies      = make(map[C.AdapterName]C.Proxy)
 	providers    map[C.AdapterName]provider.ProxyProvider
@@ -54,10 +56,30 @@ func Rules() []C.Rule {
 	return routeRules
 }
 
+func CombineRules(rawRules []C.Rule) []C.Rule {
+	combinedRules := make([]C.Rule, 0, len(rawRules))
+	domainTrieRule := rules.NewDomainTrie()
+	combinedRules = append(combinedRules, domainTrieRule)
+	for _, rule := range rawRules {
+		switch rule.RuleType() {
+		case C.Domain, C.DomainSuffix:
+			err := domainTrieRule.InsertRule(rule)
+			if err != nil {
+				log.Fatalln("UpdateRules: %v", err)
+			}
+		default:
+			combinedRules = append(combinedRules, rule)
+		}
+	}
+	log.Infoln("Parsed %d rules. Combined into %d rules.", len(rawRules), len(combinedRules))
+	return combinedRules
+}
+
 // UpdateRules handle update rules
 func UpdateRules(newRules []C.Rule) {
 	configMux.Lock()
-	routeRules = newRules
+	rawRules = newRules
+	routeRules = CombineRules(newRules)
 	configMux.Unlock()
 }
 

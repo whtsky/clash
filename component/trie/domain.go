@@ -9,7 +9,7 @@ const (
 	wildcard        = "*"
 	dotWildcard     = ""
 	complexWildcard = "+"
-	domainStep      = "."
+	domainSep       = "."
 )
 
 var (
@@ -28,7 +28,7 @@ func validAndSplitDomain(domain string) ([]string, bool) {
 		return nil, false
 	}
 
-	parts := strings.Split(domain, domainStep)
+	parts := strings.Split(domain, domainSep)
 	if len(parts) == 1 {
 		if parts[0] == "" {
 			return nil, false
