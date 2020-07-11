@@ -71,7 +71,6 @@ func CombineRules(rawRules []C.Rule) []C.Rule {
 			combinedRules = append(combinedRules, rule)
 		}
 	}
-	log.Infoln("Parsed %d rules. Combined into %d rules.", len(rawRules), len(combinedRules))
 	return combinedRules
 }
 
@@ -80,6 +79,7 @@ func UpdateRules(newRules []C.Rule) {
 	configMux.Lock()
 	rawRules = newRules
 	routeRules = CombineRules(newRules)
+	log.Infoln("Parsed %d rules. Combined into %d rules.", len(rawRules), len(routeRules))
 	configMux.Unlock()
 }
 

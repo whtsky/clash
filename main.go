@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"syscall"
+	"text/tabwriter"
 
 	"github.com/whtsky/clash/config"
 	"github.com/whtsky/clash/constant"
@@ -15,12 +16,14 @@ import (
 	"github.com/whtsky/clash/hub"
 	"github.com/whtsky/clash/hub/executor"
 	"github.com/whtsky/clash/log"
+	"github.com/whtsky/clash/tunnel"
 )
 
 var (
 	flagset            map[string]bool
 	version            bool
 	testConfig         bool
+	ruleInspect        bool
 	homeDir            string
 	configFile         string
 	externalUI         string
@@ -36,12 +39,44 @@ func init() {
 	flag.StringVar(&secret, "secret", "", "override secret for RESTful API")
 	flag.BoolVar(&version, "v", false, "show current version of clash")
 	flag.BoolVar(&testConfig, "t", false, "test configuration and exit")
+	flag.BoolVar(&ruleInspect, "rule-inspect", false, "show counts of different rule types")
 	flag.Parse()
 
 	flagset = map[string]bool{}
 	flag.Visit(func(f *flag.Flag) {
 		flagset[f.Name] = true
 	})
+}
+
+func countRules(rules []C.Rule) map[C.RuleType]int {
+	counts := make(map[C.RuleType]int)
+	for _, rule := range rules {
+		ruleType := rule.RuleType()
+		_, ok := counts[ruleType]
+		if !ok {
+			counts[ruleType] = 1
+		} else {
+			counts[ruleType]++
+		}
+	}
+	return counts
+}
+
+func printRuleCounts(rules []C.Rule) {
+	result := countRules(rules)
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 5, ' ', 0)
+	for ruleType, count := range result {
+		fmt.Fprintf(w, "%s\t%d\n", ruleType, count)
+	}
+	w.Flush()
+}
+
+func printRuleInspect(rules []C.Rule) {
+	fmt.Println("========== Raw Rules ==========")
+	printRuleCounts(rules)
+	fmt.Println("\n\n========== Combined Rules ==========")
+	printRuleCounts(tunnel.CombineRules(rules))
 }
 
 func main() {
@@ -74,13 +109,26 @@ func main() {
 	}
 
 	if testConfig {
-		if _, err := executor.Parse(); err != nil {
+		config, err := executor.Parse()
+		if err != nil {
 			log.Errorln(err.Error())
 			fmt.Printf("configuration file %s test failed\n", constant.Path.Config())
 			os.Exit(1)
 		}
 		fmt.Printf("configuration file %s test is successful\n", constant.Path.Config())
+		if ruleInspect {
+			printRuleInspect(config.Rules)
+		}
 		return
+	}
+
+	if ruleInspect {
+		config, err := executor.Parse()
+		if err != nil {
+			log.Errorln(err.Error())
+			os.Exit(1)
+		}
+		printRuleInspect(config.Rules)
 	}
 
 	var options []hub.Option
