@@ -15,7 +15,7 @@ import (
 	v2rayObfs "github.com/whtsky/clash/component/v2ray-plugin"
 	C "github.com/whtsky/clash/constant"
 
-	"github.com/Dreamacro/go-shadowsocks2/core"
+	"github.com/shadowsocks/go-shadowsocks2/core"
 )
 
 type ShadowSocks struct {
