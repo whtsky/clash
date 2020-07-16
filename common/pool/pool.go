@@ -1,5 +1,15 @@
 package pool
 
+import "github.com/xtaci/smux"
+
+var (
+	defaultAllocator *smux.Allocator
+)
+
+func init() {
+	defaultAllocator = smux.NewAllocator()
+}
+
 const (
 	// io.Copy default buffer size is 32 KiB
 	// but the maximum packet size of vmess/shadowsocks is about 16 KiB
