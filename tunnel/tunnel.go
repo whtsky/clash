@@ -15,13 +15,11 @@ import (
 	"github.com/whtsky/clash/dns"
 	"github.com/whtsky/clash/log"
 	"github.com/whtsky/clash/rules"
-
-	channels "gopkg.in/eapache/channels.v1"
 )
 
 var (
-	tcpQueue     = channels.NewInfiniteChannel()
-	udpQueue     = channels.NewInfiniteChannel()
+	tcpQueue     = make(chan C.ServerAdapter)
+	udpQueue     = make(chan *inbound.PacketAdapter)
 	natTable     = nat.New()
 	rawRules     []C.Rule
 	routeRules   []C.Rule
@@ -43,12 +41,12 @@ func init() {
 
 // Add request to queue
 func Add(req C.ServerAdapter) {
-	tcpQueue.In() <- req
+	tcpQueue <- req
 }
 
 // AddPacket add udp Packet to queue
 func AddPacket(packet *inbound.PacketAdapter) {
-	udpQueue.In() <- packet
+	udpQueue <- packet
 }
 
 // Rules return all rules
@@ -118,9 +116,9 @@ func SetResolver(r *dns.Resolver) {
 
 // processUDP starts a loop to handle udp packet
 func processUDP() {
-	queue := udpQueue.Out()
+	queue := udpQueue
 	for elm := range queue {
-		conn := elm.(*inbound.PacketAdapter)
+		conn := elm
 		handleUDPConn(conn)
 	}
 }
@@ -134,10 +132,8 @@ func process() {
 		go processUDP()
 	}
 
-	queue := tcpQueue.Out()
-	for elm := range queue {
-		conn := elm.(C.ServerAdapter)
-		go handleTCPConn(conn)
+	for elm := range tcpQueue {
+		go handleTCPConn(elm)
 	}
 }
 
