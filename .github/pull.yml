@@ -5,4 +5,9 @@ rules:
     mergeMethod: hardreset
   - base: master
     upstream: upstream_master
+  - base: upstream_dev
+    upstream: Dreamacro:dev
+    mergeMethod: hardreset
+  - base: master
+    upstream: upstream_dev
 label: ":arrow_heading_down: pull"
