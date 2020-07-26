@@ -16,6 +16,7 @@ import (
 
 	"github.com/whtsky/clash/common/cache"
 	"github.com/whtsky/clash/common/pool"
+	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/log"
 )
@@ -40,7 +41,7 @@ var (
 )
 
 type Process struct {
-	adapter string
+	adapter C.AdapterName
 	process string
 }
 
@@ -48,13 +49,14 @@ func (p *Process) RuleType() C.RuleType {
 	return C.Process
 }
 
-func (p *Process) Match(metadata *C.Metadata) bool {
+func (p *Process) Match(metadata *C.Metadata) *constant.AdapterName {
 	key := fmt.Sprintf("%s:%s:%s", metadata.NetWork.String(), metadata.SrcIP.String(), metadata.SrcPort)
 	cached, hit := processCache.Get(key)
 	if !hit {
 		processName, err := resolveProcessName(metadata)
 		if err != nil {
 			log.Debugln("[%s] Resolve process of %s failure: %s", C.Process.String(), key, err.Error())
+			return nil
 		}
 
 		processCache.Set(key, processName)
@@ -62,10 +64,13 @@ func (p *Process) Match(metadata *C.Metadata) bool {
 		cached = processName
 	}
 
-	return strings.EqualFold(cached.(string), p.process)
+	if strings.EqualFold(cached.(string), p.process) {
+		return &p.adapter
+	}
+	return nil
 }
 
-func (p *Process) Adapter() string {
+func (p *Process) Adapter() C.AdapterName {
 	return p.adapter
 }
 
