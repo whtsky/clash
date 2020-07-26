@@ -140,11 +140,11 @@ func (rule *DomainTrie) Match(metadata *C.Metadata) *C.AdapterName {
 }
 
 func (rule *DomainTrie) Adapter() C.AdapterName {
-	return C.AdapterName("MULTIPLE")
+	return C.AdapterName("")
 }
 
 func (rule *DomainTrie) Payload() string {
-	return "MULTIPLE"
+	return ""
 }
 
 func (rule *DomainTrie) NoResolveIP() bool {

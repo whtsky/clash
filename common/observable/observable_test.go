@@ -1,7 +1,6 @@
 package observable
 
 import (
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -39,7 +38,7 @@ func TestObservable_MutilSubscribe(t *testing.T) {
 	src := NewObservable(iter)
 	ch1, _ := src.Subscribe()
 	ch2, _ := src.Subscribe()
-	count := int32(0)
+	var count int32
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -83,9 +82,6 @@ func TestObservable_UnSubscribeWithNotExistSubscription(t *testing.T) {
 }
 
 func TestObservable_SubscribeGoroutineLeak(t *testing.T) {
-	// waiting for other goroutine recycle
-	time.Sleep(120 * time.Millisecond)
-	init := runtime.NumGoroutine()
 	iter := iterator([]interface{}{1, 2, 3, 4, 5})
 	src := NewObservable(iter)
 	max := 100
@@ -108,6 +104,12 @@ func TestObservable_SubscribeGoroutineLeak(t *testing.T) {
 		go waitCh(ch)
 	}
 	wg.Wait()
-	now := runtime.NumGoroutine()
-	assert.Equal(t, init, now)
+
+	for _, sub := range list {
+		_, more := <-sub
+		assert.False(t, more)
+	}
+
+	_, more := <-list[0]
+	assert.False(t, more)
 }

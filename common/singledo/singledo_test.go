@@ -12,7 +12,7 @@ import (
 func TestBasic(t *testing.T) {
 	single := NewSingle(time.Millisecond * 30)
 	foo := 0
-	shardCount := int32(0)
+	var shardCount int32 = 0
 	call := func() (interface{}, error) {
 		foo++
 		time.Sleep(time.Millisecond * 5)
