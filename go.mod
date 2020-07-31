@@ -14,6 +14,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/shadowsocks/go-shadowsocks2 v0.1.0
 	github.com/sirupsen/logrus v1.6.0
+	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.6.1
 	github.com/xtaci/smux v1.5.14
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9

@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"net"
 
+	"github.com/spaolacci/murmur3"
+
 	"github.com/whtsky/clash/adapters/outbound"
 	"github.com/whtsky/clash/adapters/provider"
-	"github.com/whtsky/clash/common/murmur3"
 	"github.com/whtsky/clash/common/singledo"
 	C "github.com/whtsky/clash/constant"
 
