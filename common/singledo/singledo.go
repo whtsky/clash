@@ -5,17 +5,10 @@ import (
 	"time"
 )
 
-type call struct {
-	wg  sync.WaitGroup
-	val interface{}
-	err error
-}
-
 type Single struct {
-	mux    sync.Mutex
-	last   time.Time
+	mux    sync.RWMutex
 	wait   time.Duration
-	call   *call
+	next   time.Time
 	result *Result
 }
 
@@ -24,36 +17,35 @@ type Result struct {
 	Err error
 }
 
-func (s *Single) Do(fn func() (interface{}, error)) (v interface{}, err error, shared bool) {
-	s.mux.Lock()
+// add lock outside
+func (s *Single) shouldRun() bool {
 	now := time.Now()
-	if now.Before(s.last.Add(s.wait)) {
-		s.mux.Unlock()
+	return !now.Before(s.next)
+}
+
+func (s *Single) Do(fn func() (interface{}, error)) (v interface{}, err error, shared bool) {
+	s.mux.RLock()
+	shouldRun := s.shouldRun()
+	s.mux.RUnlock()
+	if !shouldRun {
 		return s.result.Val, s.result.Err, true
 	}
 
-	if call := s.call; call != nil {
-		s.mux.Unlock()
-		call.wg.Wait()
-		return call.val, call.err, true
-	}
-
-	call := &call{}
-	call.wg.Add(1)
-	s.call = call
-	s.mux.Unlock()
-	call.val, call.err = fn()
-	call.wg.Done()
 	s.mux.Lock()
-	s.call = nil
-	s.result = &Result{call.val, call.err}
-	s.last = now
-	s.mux.Unlock()
-	return call.val, call.err, false
+	defer s.mux.Unlock()
+	if !s.shouldRun() {
+		return s.result.Val, s.result.Err, true
+	}
+	val, err := fn()
+	s.result = &Result{val, err}
+	s.next = time.Now().Add(s.wait)
+	return val, err, false
 }
 
 func (s *Single) Reset() {
-	s.last = time.Time{}
+	s.mux.Lock()
+	s.next = time.Time{}
+	s.mux.Unlock()
 }
 
 func NewSingle(wait time.Duration) *Single {

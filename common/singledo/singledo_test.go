@@ -54,6 +54,7 @@ func TestTimer(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
+	assert := assert.New(t)
 	single := NewSingle(time.Millisecond * 30)
 	foo := 0
 	call := func() (interface{}, error) {
@@ -61,9 +62,11 @@ func TestReset(t *testing.T) {
 		return nil, nil
 	}
 
-	single.Do(call)
+	_, _, shared := single.Do(call)
+	assert.False(shared)
 	single.Reset()
-	single.Do(call)
+	_, _, shared = single.Do(call)
+	assert.False(shared)
 
-	assert.Equal(t, 2, foo)
+	assert.Equal(2, foo)
 }
