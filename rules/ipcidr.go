@@ -54,8 +54,8 @@ func (i *IPCIDR) Payload() string {
 	return i.ipnet.String()
 }
 
-func (i *IPCIDR) NoResolveIP() bool {
-	return i.noResolveIP
+func (i *IPCIDR) ShouldResolveIP() bool {
+	return !i.noResolveIP
 }
 
 func (i *IPCIDR) IsSourceIP() bool {

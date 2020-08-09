@@ -35,8 +35,8 @@ func (ds *DomainSuffix) Payload() string {
 	return ds.suffix
 }
 
-func (ds *DomainSuffix) NoResolveIP() bool {
-	return true
+func (ds *DomainSuffix) ShouldResolveIP() bool {
+	return false
 }
 
 func NewDomainSuffix(suffix string, adapter constant.AdapterName) *DomainSuffix {

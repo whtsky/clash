@@ -147,8 +147,8 @@ func (rule *DomainTrie) Payload() string {
 	return ""
 }
 
-func (rule *DomainTrie) NoResolveIP() bool {
-	return true
+func (rule *DomainTrie) ShouldResolveIP() bool {
+	return false
 }
 
 func NewDomainTrie() *DomainTrie {
