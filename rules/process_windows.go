@@ -11,9 +11,10 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/Dreamacro/clash/common/cache"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
+	"github.com/whtsky/clash/common/cache"
+	"github.com/whtsky/clash/constant"
+	C "github.com/whtsky/clash/constant"
+	"github.com/whtsky/clash/log"
 
 	"golang.org/x/sys/windows"
 )
@@ -68,7 +69,7 @@ func initWin32API() error {
 }
 
 type Process struct {
-	adapter string
+	adapter C.AdapterName
 	process string
 }
 
@@ -76,7 +77,7 @@ func (p *Process) RuleType() C.RuleType {
 	return C.Process
 }
 
-func (p *Process) Adapter() string {
+func (p *Process) Adapter() C.AdapterName {
 	return p.adapter
 }
 
@@ -103,11 +104,14 @@ func match(p *Process, metadata *C.Metadata) bool {
 	return strings.EqualFold(cached.(string), p.process)
 }
 
-func (p *Process) Match(metadata *C.Metadata) bool {
-	return matchMeta(p, metadata)
+func (p *Process) Match(metadata *C.Metadata) *constant.AdapterName {
+	if matchMeta(p, metadata) {
+		return &p.adapter
+	}
+	return nil
 }
 
-func NewProcess(process string, adapter string) (*Process, error) {
+func NewProcess(process string, adapter C.AdapterName) (*Process, error) {
 	once.Do(func() {
 		err := initWin32API()
 		if err != nil {

@@ -11,16 +11,17 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/Dreamacro/clash/common/cache"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
+	"github.com/whtsky/clash/common/cache"
+	"github.com/whtsky/clash/constant"
+	C "github.com/whtsky/clash/constant"
+	"github.com/whtsky/clash/log"
 )
 
 // store process name for when dealing with multiple PROCESS-NAME rules
 var processCache = cache.NewLRUCache(cache.WithAge(2), cache.WithSize(64))
 
 type Process struct {
-	adapter string
+	adapter C.AdapterName
 	process string
 }
 
@@ -28,14 +29,14 @@ func (ps *Process) RuleType() C.RuleType {
 	return C.Process
 }
 
-func (ps *Process) Match(metadata *C.Metadata) bool {
+func (ps *Process) Match(metadata *C.Metadata) *constant.AdapterName {
 	key := fmt.Sprintf("%s:%s:%s", metadata.NetWork.String(), metadata.SrcIP.String(), metadata.SrcPort)
 	cached, hit := processCache.Get(key)
 	if !hit {
 		name, err := getExecPathFromAddress(metadata)
 		if err != nil {
 			log.Debugln("[%s] getExecPathFromAddress error: %s", C.Process.String(), err.Error())
-			return false
+			return nil
 		}
 
 		processCache.Set(key, name)
@@ -43,10 +44,13 @@ func (ps *Process) Match(metadata *C.Metadata) bool {
 		cached = name
 	}
 
-	return strings.EqualFold(cached.(string), ps.process)
+	if strings.EqualFold(cached.(string), ps.process) {
+		return &ps.adapter
+	}
+	return nil
 }
 
-func (p *Process) Adapter() string {
+func (p *Process) Adapter() C.AdapterName {
 	return p.adapter
 }
 
@@ -58,7 +62,7 @@ func (p *Process) ShouldResolveIP() bool {
 	return false
 }
 
-func NewProcess(process string, adapter string) (*Process, error) {
+func NewProcess(process string, adapter C.AdapterName) (*Process, error) {
 	return &Process{
 		adapter: adapter,
 		process: process,
