@@ -13,10 +13,6 @@ import (
 	C "github.com/whtsky/clash/constant"
 )
 
-var (
-	defaultURLTestTimeout = time.Second * 5
-)
-
 type Base struct {
 	name C.AdapterName
 	addr string

@@ -19,10 +19,13 @@ type Result struct {
 
 // add lock outside
 func (s *Single) shouldRun() bool {
+	s.mux.Lock()
 	now := time.Now()
 	return !now.Before(s.next)
 }
 
+// Do single.Do likes sync.singleFilght
+// lint:ignore ST1008 it likes sync.singleFilght
 func (s *Single) Do(fn func() (interface{}, error)) (v interface{}, err error, shared bool) {
 	s.mux.RLock()
 	shouldRun := s.shouldRun()

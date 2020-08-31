@@ -21,6 +21,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Get dependencies, run test and static check
+        run: |
+          go test ./...
+          go vet ./...
+          go get -u honnef.co/go/tools/cmd/staticcheck
+          staticcheck -- $(go list ./...)
+
       - name: Build
         env:
           NAME: clash

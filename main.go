@@ -112,7 +112,7 @@ func main() {
 		config, err := executor.Parse()
 		if err != nil {
 			log.Errorln(err.Error())
-			fmt.Printf("configuration file %s test failed\n", constant.Path.Config())
+			fmt.Printf("configuration file %s test failed\n", C.Path.Config())
 			os.Exit(1)
 		}
 		fmt.Printf("configuration file %s test is successful\n", constant.Path.Config())
