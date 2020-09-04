@@ -100,7 +100,7 @@ func searchSocketPid(socket uint64) (uint32, error) {
 
 	// struct xfile
 	itemSize := 128
-	for i := 0; i < len(buf); i += itemSize {
+	for i := 0; i+itemSize <= len(buf); i += itemSize {
 		// xfile.xf_data
 		data := binary.BigEndian.Uint64(buf[i+56 : i+64])
 		if data == socket {
@@ -146,8 +146,8 @@ func getExecPathFromAddress(metadata *C.Metadata) (string, error) {
 
 	buf := []byte(value)
 
-	// skip the first and last xinpgen(64 bytes) block
-	for i := 64; i < len(buf)-64; i += itemSize {
+	// skip the first xinpgen(64 bytes) block
+	for i := 64; i+itemSize <= len(buf); i += itemSize {
 		inp := i + inpOffset
 
 		srcPort := binary.BigEndian.Uint16(buf[inp+254 : inp+256])
