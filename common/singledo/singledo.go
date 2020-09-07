@@ -19,7 +19,6 @@ type Result struct {
 
 // add lock outside
 func (s *Single) shouldRun() bool {
-	s.mux.Lock()
 	now := time.Now()
 	return !now.Before(s.next)
 }
