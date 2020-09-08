@@ -24,7 +24,7 @@ func (s *Single) shouldRun() bool {
 }
 
 // Do single.Do likes sync.singleFilght
-// lint:ignore ST1008 it likes sync.singleFilght
+//lint:ignore ST1008 it likes sync.singleFilght
 func (s *Single) Do(fn func() (interface{}, error)) (v interface{}, err error, shared bool) {
 	s.mux.RLock()
 	shouldRun := s.shouldRun()

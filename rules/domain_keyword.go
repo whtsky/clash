@@ -3,13 +3,12 @@ package rules
 import (
 	"strings"
 
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type DomainKeyword struct {
 	keyword string
-	adapter constant.AdapterName
+	adapter C.AdapterName
 }
 
 func (dk *DomainKeyword) RuleType() C.RuleType {
@@ -39,7 +38,7 @@ func (dk *DomainKeyword) ShouldResolveIP() bool {
 	return false
 }
 
-func NewDomainKeyword(keyword string, adapter constant.AdapterName) *DomainKeyword {
+func NewDomainKeyword(keyword string, adapter C.AdapterName) *DomainKeyword {
 	return &DomainKeyword{
 		keyword: strings.ToLower(keyword),
 		adapter: adapter,

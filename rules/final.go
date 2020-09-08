@@ -1,12 +1,11 @@
 package rules
 
 import (
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type Match struct {
-	adapter constant.AdapterName
+	adapter C.AdapterName
 }
 
 func (f *Match) RuleType() C.RuleType {
@@ -29,7 +28,7 @@ func (f *Match) ShouldResolveIP() bool {
 	return false
 }
 
-func NewMatch(adapter constant.AdapterName) *Match {
+func NewMatch(adapter C.AdapterName) *Match {
 	return &Match{
 		adapter: adapter,
 	}

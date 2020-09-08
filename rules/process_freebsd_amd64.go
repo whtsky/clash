@@ -13,7 +13,6 @@ import (
 	"unsafe"
 
 	"github.com/whtsky/clash/common/cache"
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/log"
 )
@@ -38,7 +37,7 @@ func (ps *Process) RuleType() C.RuleType {
 	return C.Process
 }
 
-func match(ps *Process, metadata *C.Metadata) *constant.AdapterName {
+func match(ps *Process, metadata *C.Metadata) *C.AdapterName {
 	key := fmt.Sprintf("%s:%s:%s", metadata.NetWork.String(), metadata.SrcIP.String(), metadata.SrcPort)
 	cached, hit := processCache.Get(key)
 	if !hit {

@@ -3,7 +3,6 @@ package rules
 import (
 	"strconv"
 
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
@@ -43,7 +42,7 @@ func (p *Port) ShouldResolveIP() bool {
 	return false
 }
 
-func NewPort(port string, adapter constant.AdapterName, isSource bool) (*Port, error) {
+func NewPort(port string, adapter C.AdapterName, isSource bool) (*Port, error) {
 	_, err := strconv.Atoi(port)
 	if err != nil {
 		return nil, errPayload

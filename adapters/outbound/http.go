@@ -26,12 +26,12 @@ type Http struct {
 
 type HttpOption struct {
 	Name           C.AdapterName `proxy:"name"`
-	Server         string `proxy:"server"`
-	Port           int    `proxy:"port"`
-	UserName       string `proxy:"username,omitempty"`
-	Password       string `proxy:"password,omitempty"`
-	TLS            bool   `proxy:"tls,omitempty"`
-	SkipCertVerify bool   `proxy:"skip-cert-verify,omitempty"`
+	Server         string        `proxy:"server"`
+	Port           int           `proxy:"port"`
+	UserName       string        `proxy:"username,omitempty"`
+	Password       string        `proxy:"password,omitempty"`
+	TLS            bool          `proxy:"tls,omitempty"`
+	SkipCertVerify bool          `proxy:"skip-cert-verify,omitempty"`
 }
 
 func (h *Http) StreamConn(c net.Conn, metadata *C.Metadata) (net.Conn, error) {

@@ -3,7 +3,6 @@ package rules
 import (
 	"net"
 
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
@@ -23,7 +22,7 @@ func WithIPCIDRNoResolve(noResolve bool) IPCIDROption {
 
 type IPCIDR struct {
 	ipnet       *net.IPNet
-	adapter     constant.AdapterName
+	adapter     C.AdapterName
 	isSourceIP  bool
 	noResolveIP bool
 }
@@ -66,7 +65,7 @@ func (i *IPCIDR) GetIpNet() *net.IPNet {
 	return i.ipnet
 }
 
-func NewIPCIDR(s string, adapter constant.AdapterName, opts ...IPCIDROption) (*IPCIDR, error) {
+func NewIPCIDR(s string, adapter C.AdapterName, opts ...IPCIDROption) (*IPCIDR, error) {
 	_, ipnet, err := net.ParseCIDR(s)
 	if err != nil {
 		return nil, errPayload

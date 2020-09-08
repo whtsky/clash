@@ -3,13 +3,12 @@ package rules
 import (
 	"strings"
 
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type DomainSuffix struct {
 	suffix  string
-	adapter constant.AdapterName
+	adapter C.AdapterName
 }
 
 func (ds *DomainSuffix) RuleType() C.RuleType {
@@ -39,7 +38,7 @@ func (ds *DomainSuffix) ShouldResolveIP() bool {
 	return false
 }
 
-func NewDomainSuffix(suffix string, adapter constant.AdapterName) *DomainSuffix {
+func NewDomainSuffix(suffix string, adapter C.AdapterName) *DomainSuffix {
 	return &DomainSuffix{
 		suffix:  strings.ToLower(suffix),
 		adapter: adapter,

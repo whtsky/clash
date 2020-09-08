@@ -3,13 +3,12 @@ package rules
 import (
 	"strings"
 
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type Domain struct {
 	domain  string
-	adapter constant.AdapterName
+	adapter C.AdapterName
 }
 
 func (d *Domain) RuleType() C.RuleType {
@@ -38,7 +37,7 @@ func (d *Domain) ShouldResolveIP() bool {
 	return false
 }
 
-func NewDomain(domain string, adapter constant.AdapterName) *Domain {
+func NewDomain(domain string, adapter C.AdapterName) *Domain {
 	return &Domain{
 		domain:  strings.ToLower(domain),
 		adapter: adapter,

@@ -2,13 +2,12 @@ package rules
 
 import (
 	"github.com/whtsky/clash/component/mmdb"
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
 type GEOIP struct {
 	country     string
-	adapter     constant.AdapterName
+	adapter     C.AdapterName
 	noResolveIP bool
 }
 
@@ -40,7 +39,7 @@ func (g *GEOIP) ShouldResolveIP() bool {
 	return !g.noResolveIP
 }
 
-func NewGEOIP(country string, adapter constant.AdapterName, noResolveIP bool) *GEOIP {
+func NewGEOIP(country string, adapter C.AdapterName, noResolveIP bool) *GEOIP {
 	geoip := &GEOIP{
 		country:     country,
 		adapter:     adapter,

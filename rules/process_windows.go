@@ -12,7 +12,6 @@ import (
 	"unsafe"
 
 	"github.com/whtsky/clash/common/cache"
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/log"
 
@@ -104,7 +103,7 @@ func match(p *Process, metadata *C.Metadata) bool {
 	return strings.EqualFold(cached.(string), p.process)
 }
 
-func (p *Process) Match(metadata *C.Metadata) *constant.AdapterName {
+func (p *Process) Match(metadata *C.Metadata) *C.AdapterName {
 	if matchMeta(p, metadata) {
 		return &p.adapter
 	}

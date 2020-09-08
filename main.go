@@ -11,7 +11,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/whtsky/clash/config"
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/hub"
 	"github.com/whtsky/clash/hub/executor"
@@ -115,7 +114,7 @@ func main() {
 			fmt.Printf("configuration file %s test failed\n", C.Path.Config())
 			os.Exit(1)
 		}
-		fmt.Printf("configuration file %s test is successful\n", constant.Path.Config())
+		fmt.Printf("configuration file %s test is successful\n", C.Path.Config())
 		if ruleInspect {
 			printRuleInspect(config.Rules)
 		}
