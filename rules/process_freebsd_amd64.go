@@ -62,7 +62,7 @@ func (ps *Process) Match(metadata *C.Metadata) bool {
 	return matchMeta(ps, metadata)
 }
 
-func (p *Process) Adapter() string {
+func (p *Process) Adapter() C.AdapterName {
 	return p.adapter
 }
 
