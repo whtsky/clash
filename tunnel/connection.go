@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	adapters "github.com/whtsky/clash/adapters/inbound"
+	"github.com/whtsky/clash/adapters/inbound"
 	"github.com/whtsky/clash/component/resolver"
 	C "github.com/whtsky/clash/constant"
 
 	"github.com/whtsky/clash/common/pool"
 )
 
-func handleHTTP(request *adapters.HTTPAdapter, outbound net.Conn) {
+func handleHTTP(request *inbound.HTTPAdapter, outbound net.Conn) {
 	req := request.R
 	host := req.Host
 
@@ -28,7 +28,7 @@ func handleHTTP(request *adapters.HTTPAdapter, outbound net.Conn) {
 
 		req.Header.Set("Connection", "close")
 		req.RequestURI = ""
-		adapters.RemoveHopByHopHeaders(req.Header)
+		inbound.RemoveHopByHopHeaders(req.Header)
 		err := req.Write(outbound)
 		if err != nil {
 			break
@@ -39,7 +39,7 @@ func handleHTTP(request *adapters.HTTPAdapter, outbound net.Conn) {
 		if err != nil {
 			break
 		}
-		adapters.RemoveHopByHopHeaders(resp.Header)
+		inbound.RemoveHopByHopHeaders(resp.Header)
 
 		if resp.StatusCode == http.StatusContinue {
 			err = resp.Write(request)
@@ -128,7 +128,7 @@ func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, fAddr n
 	}
 }
 
-func handleSocket(request *adapters.SocketAdapter, outbound net.Conn) {
+func handleSocket(request C.ServerAdapter, outbound net.Conn) {
 	relay(request, outbound)
 }
 
