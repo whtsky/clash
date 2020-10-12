@@ -58,7 +58,7 @@ func match(ps *Process, metadata *C.Metadata) *C.AdapterName {
 	return nil
 }
 
-func (ps *Process) Match(metadata *C.Metadata) bool {
+func (ps *Process) Match(metadata *C.Metadata) *C.AdapterName {
 	return matchMeta(ps, metadata)
 }
 
