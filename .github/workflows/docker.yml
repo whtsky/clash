@@ -15,12 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
       - name: Set up docker buildx
         id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v3
+        uses: docker/setup-buildx-action@v1
         with:
-          buildx-version: latest
-          qemu-version: latest
+          version: latest
 
       - name: Docker login
         env:
@@ -34,16 +38,23 @@ jobs:
         run: |
           docker buildx build --output "type=image,push=true" --platform=linux/amd64,linux/arm/v7,linux/arm64 --tag whtsky/clash:dev .
 
-      - name: Replace tag without `v`
+      - name: Get all docker tags
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/github-script@v3
-        id: version
+        id: tags
         with:
           script: |
-            return context.payload.ref.replace(/\/?refs\/tags\/v/, '')
+            const ref = `${context.payload.ref.replace(/\/?refs\/tags\//, '')}`
+            const tags = [
+              'dreamacro/clash:latest',
+              `dreamacro/clash:${ref}`,
+              'ghcr.io/dreamacro/clash:latest',
+              `ghcr.io/dreamacro/clash:${ref}`
+            ]
+            return tags.join(',')
           result-encoding: string
 
-      - name: Docker buildx image and push on release
+      - name: Build release and push
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           docker buildx build --output "type=image,push=true" --platform=linux/amd64,linux/arm/v7,linux/arm64 --tag whtsky/clash:${{steps.version.outputs.result}} .

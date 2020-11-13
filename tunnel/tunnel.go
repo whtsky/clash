@@ -110,8 +110,7 @@ func SetMode(m TunnelMode) {
 // processUDP starts a loop to handle udp packet
 func processUDP() {
 	queue := udpQueue
-	for elm := range queue {
-		conn := elm
+	for conn := range queue {
 		handleUDPConn(conn)
 	}
 }
@@ -125,8 +124,9 @@ func process() {
 		go processUDP()
 	}
 
-	for elm := range tcpQueue {
-		go handleTCPConn(elm)
+	queue := tcpQueue
+	for conn := range queue {
+		go handleTCPConn(conn)
 	}
 }
 
@@ -185,9 +185,9 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 		return
 	}
 
-	// make a fAddr if requset ip is fakeip
+	// make a fAddr if request ip is fakeip
 	var fAddr net.Addr
-	if resolver.IsFakeIP(metadata.DstIP) {
+	if resolver.IsExistFakeIP(metadata.DstIP) {
 		fAddr = metadata.UDPAddr()
 	}
 
@@ -197,74 +197,81 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	}
 
 	key := packet.LocalAddr().String()
-	pc := natTable.Get(key)
-	if pc != nil {
-		handleUDPToRemote(packet, pc, metadata)
+
+	handle := func() bool {
+		pc := natTable.Get(key)
+		if pc != nil {
+			handleUDPToRemote(packet, pc, metadata)
+			return true
+		}
+		return false
+	}
+
+	if handle() {
 		return
 	}
 
 	lockKey := key + "-lock"
-	wg, loaded := natTable.GetOrCreateLock(lockKey)
+	cond, loaded := natTable.GetOrCreateLock(lockKey)
 
 	go func() {
-		if !loaded {
-			wg.Add(1)
-			proxy, rule, elapsed, err := resolveMetadata(metadata)
-			if err != nil {
-				log.Warnln("[UDP] Parse metadata failed: %s", err.Error())
-				natTable.Delete(lockKey)
-				wg.Done()
-				return
-			}
+		if loaded {
+			cond.L.Lock()
+			cond.Wait()
+			handle()
+			cond.L.Unlock()
+			return
+		}
 
-			rawPc, err := proxy.DialUDP(metadata)
-			if err != nil {
-				log.Warnln("[UDP] dial %s error: %s", proxy.Name(), err.Error())
-				natTable.Delete(lockKey)
-				wg.Done()
-				return
-			}
-			pc = newUDPTracker(rawPc, DefaultManager, metadata, rule)
-
-			switch true {
-			case rule != nil:
-				log.Infoln(
-					"[UDP] %s --> %v match %s(%s) using %s. took %s for rule matching.",
-					metadata.SourceAddress(), metadata.String(),
-					rule.RuleType().String(), rule.Payload(), rawPc.Chains().String(),
-					elapsed,
-				)
-			case mode == Global:
-				log.Infoln(
-					"[UDP] %s --> %v using GLOBAL. took %s for rule matching.",
-					metadata.SourceAddress(), metadata.String(),
-					elapsed,
-				)
-			case mode == Direct:
-				log.Infoln(
-					"[UDP] %s --> %v using DIRECT. took %s for rule matching.",
-					metadata.SourceAddress(), metadata.String(),
-					elapsed,
-				)
-			default:
-				log.Infoln(
-					"[UDP] %s --> %v doesn't match any rule using DIRECT. took %s for rule matching.",
-					metadata.SourceAddress(), metadata.String(),
-					elapsed,
-				)
-			}
-
-			natTable.Set(key, pc)
+		defer func() {
 			natTable.Delete(lockKey)
-			wg.Done()
-			go handleUDPToLocal(packet.UDPPacket, pc, key, fAddr)
+			cond.Broadcast()
+		}()
+
+		proxy, rule, elapsed, err := resolveMetadata(metadata)
+		if err != nil {
+			log.Warnln("[UDP] Parse metadata failed: %s", err.Error())
+			return
 		}
 
-		wg.Wait()
-		pc := natTable.Get(key)
-		if pc != nil {
-			handleUDPToRemote(packet, pc, metadata)
+		rawPc, err := proxy.DialUDP(metadata)
+		if err != nil {
+			log.Warnln("[UDP] dial %s error: %s", proxy.Name(), err.Error())
+			return
 		}
+		pc := newUDPTracker(rawPc, DefaultManager, metadata, rule)
+		switch true {
+		case rule != nil:
+			log.Infoln(
+				"[UDP] %s --> %v match %s(%s) using %s. took %s for rule matching.",
+				metadata.SourceAddress(), metadata.String(),
+				rule.RuleType().String(), rule.Payload(), rawPc.Chains().String(),
+				elapsed,
+			)
+		case mode == Global:
+			log.Infoln(
+				"[UDP] %s --> %v using GLOBAL. took %s for rule matching.",
+				metadata.SourceAddress(), metadata.String(),
+				elapsed,
+			)
+		case mode == Direct:
+			log.Infoln(
+				"[UDP] %s --> %v using DIRECT. took %s for rule matching.",
+				metadata.SourceAddress(), metadata.String(),
+				elapsed,
+			)
+		default:
+			log.Infoln(
+				"[UDP] %s --> %v doesn't match any rule using DIRECT. took %s for rule matching.",
+				metadata.SourceAddress(), metadata.String(),
+				elapsed,
+			)
+		}
+
+		go handleUDPToLocal(packet.UDPPacket, pc, key, fAddr)
+
+		natTable.Set(key, pc)
+		handle()
 	}()
 }
 

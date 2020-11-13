@@ -24,7 +24,7 @@ func proxyGroupsDagSort(groupsConfig []map[string]interface{}) error {
 		indegree int
 		// topological order
 		topo int
-		// the origional data in `groupsConfig`
+		// the original data in `groupsConfig`
 		data map[string]interface{}
 		// `outdegree` and `from` are used in loop locating
 		outdegree int
@@ -66,7 +66,7 @@ func proxyGroupsDagSort(groupsConfig []map[string]interface{}) error {
 	index := 0
 	queue := make([]C.AdapterName, 0)
 	for name, node := range graph {
-		// in the begning, put nodes that have `node.indegree == 0` into queue.
+		// in the beginning, put nodes that have `node.indegree == 0` into queue.
 		if node.indegree == 0 {
 			queue = append(queue, name)
 		}
