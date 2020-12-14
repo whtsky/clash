@@ -236,7 +236,11 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 
 		rawPc, err := proxy.DialUDP(metadata)
 		if err != nil {
-			log.Warnln("[UDP] dial %s error: %s", proxy.Name(), err.Error())
+			if rule == nil {
+				log.Warnln("[UDP] dial %s to %s error: %s", proxy.Name(), metadata.String(), err.Error())
+			} else {
+				log.Warnln("[UDP] dial %s (match %s/%s) to %s error: %s", proxy.Name(), rule.RuleType().String(), rule.Payload(), metadata.String(), err.Error())
+			}
 			return
 		}
 		pc := newUDPTracker(rawPc, DefaultManager, metadata, rule)
@@ -291,13 +295,17 @@ func handleTCPConn(localConn C.ServerAdapter) {
 
 	proxy, rule, elapsed, err := resolveMetadata(metadata)
 	if err != nil {
-		log.Warnln("Parse metadata failed: %v", err)
+		log.Warnln("[Metadata] parse failed: %s", err.Error())
 		return
 	}
 
 	remoteConn, err := proxy.Dial(metadata)
 	if err != nil {
-		log.Warnln("dial %s error: %s", proxy.Name(), err.Error())
+		if rule == nil {
+			log.Warnln("[TCP] dial %s to %s error: %s", proxy.Name(), metadata.String(), err.Error())
+		} else {
+			log.Warnln("[TCP] dial %s (match %s/%s) to %s error: %s", proxy.Name(), rule.RuleType().String(), rule.Payload(), metadata.String(), err.Error())
+		}
 		return
 	}
 	remoteConn = newTCPTracker(remoteConn, DefaultManager, metadata, rule)

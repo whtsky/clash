@@ -21,6 +21,7 @@ type strategyFn = func(proxies []C.Proxy, metadata *C.Metadata) C.Proxy
 
 type LoadBalance struct {
 	*outbound.Base
+	disableUDP bool
 	single     *singledo.Single
 	providers  []provider.ProxyProvider
 	strategyFn strategyFn
@@ -94,7 +95,7 @@ func (lb *LoadBalance) DialUDP(metadata *C.Metadata) (pc C.PacketConn, err error
 }
 
 func (lb *LoadBalance) SupportUDP() bool {
-	return true
+	return !lb.disableUDP
 }
 
 func strategyRoundRobin() strategyFn {
@@ -131,13 +132,13 @@ func strategyConsistentHashing() strategyFn {
 }
 
 func (lb *LoadBalance) Unwrap(metadata *C.Metadata) C.Proxy {
-	proxies := lb.proxies()
+	proxies := lb.proxies(true)
 	return lb.strategyFn(proxies, metadata)
 }
 
-func (lb *LoadBalance) proxies() []C.Proxy {
+func (lb *LoadBalance) proxies(touch bool) []C.Proxy {
 	elm, _, _ := lb.single.Do(func() (interface{}, error) {
-		return getProvidersProxies(lb.providers), nil
+		return getProvidersProxies(lb.providers, touch), nil
 	})
 
 	return elm.([]C.Proxy)
@@ -145,7 +146,7 @@ func (lb *LoadBalance) proxies() []C.Proxy {
 
 func (lb *LoadBalance) MarshalJSON() ([]byte, error) {
 	var all []C.AdapterName
-	for _, proxy := range lb.proxies() {
+	for _, proxy := range lb.proxies(false) {
 		all = append(all, proxy.Name())
 	}
 	return json.Marshal(map[string]interface{}{
@@ -154,7 +155,7 @@ func (lb *LoadBalance) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func NewLoadBalance(name C.AdapterName, providers []provider.ProxyProvider, strategy string) (lb *LoadBalance, err error) {
+func NewLoadBalance(options *GroupCommonOption, providers []provider.ProxyProvider, strategy string) (lb *LoadBalance, err error) {
 	var strategyFn strategyFn
 	switch strategy {
 	case "consistent-hashing":
@@ -165,9 +166,10 @@ func NewLoadBalance(name C.AdapterName, providers []provider.ProxyProvider, stra
 		return nil, fmt.Errorf("%w: %s", errStrategy, strategy)
 	}
 	return &LoadBalance{
-		Base:       outbound.NewBase(name, "", C.LoadBalance, false),
+		Base:       outbound.NewBase(options.Name, "", C.LoadBalance, false),
 		single:     singledo.NewSingle(defaultGetProxiesDuration),
 		providers:  providers,
 		strategyFn: strategyFn,
+		disableUDP: options.DisableUDP,
 	}, nil
 }

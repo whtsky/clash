@@ -345,11 +345,16 @@ func parseProxies(cfg *RawConfig) (proxies map[C.AdapterName]C.Proxy, providersM
 	for _, v := range proxyList {
 		ps = append(ps, proxies[v])
 	}
-	hc := provider.NewHealthCheck(ps, "", 0)
+	hc := provider.NewHealthCheck(ps, "", 0, true)
 	pd, _ := provider.NewCompatibleProvider(provider.ReservedName, ps, hc)
 	providersMap[provider.ReservedName] = pd
 
-	global := outboundgroup.NewSelector("GLOBAL", []provider.ProxyProvider{pd})
+	global := outboundgroup.NewSelector(
+		&outboundgroup.GroupCommonOption{
+			Name: "GLOBAL",
+		},
+		[]provider.ProxyProvider{pd},
+	)
 	proxies["GLOBAL"] = outbound.NewProxy(global)
 	return proxies, providersMap, nil
 }
