@@ -6,7 +6,6 @@ import (
 
 	"github.com/whtsky/clash/adapters/provider"
 	"github.com/whtsky/clash/common/structure"
-	"github.com/whtsky/clash/constant"
 	C "github.com/whtsky/clash/constant"
 )
 
@@ -19,14 +18,14 @@ var (
 )
 
 type GroupCommonOption struct {
-	Name       C.AdapterName          `group:"name"`
-	Type       string                 `group:"type"`
-	Proxies    []constant.AdapterName `group:"proxies,omitempty"`
-	Use        []constant.AdapterName `group:"use,omitempty"`
-	URL        string                 `group:"url,omitempty"`
-	Interval   int                    `group:"interval,omitempty"`
-	Lazy       bool                   `group:"lazy,omitempty"`
-	DisableUDP bool                   `group:"disable-udp,omitempty"`
+	Name       C.AdapterName   `group:"name"`
+	Type       string          `group:"type"`
+	Proxies    []C.AdapterName `group:"proxies,omitempty"`
+	Use        []C.AdapterName `group:"use,omitempty"`
+	URL        string          `group:"url,omitempty"`
+	Interval   int             `group:"interval,omitempty"`
+	Lazy       bool            `group:"lazy,omitempty"`
+	DisableUDP bool            `group:"disable-udp,omitempty"`
 }
 
 func ParseProxyGroup(config map[string]interface{}, proxyMap map[C.AdapterName]C.Proxy, providersMap map[C.AdapterName]provider.ProxyProvider) (C.ProxyAdapter, error) {
