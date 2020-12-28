@@ -1,18 +1,13 @@
-package rules
+package process
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"unsafe"
 
-	"github.com/whtsky/clash/common/cache"
-	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/log"
 
 	"golang.org/x/sys/windows"
@@ -27,10 +22,6 @@ const (
 )
 
 var (
-	processCache = cache.NewLRUCache(cache.WithAge(2), cache.WithSize(64))
-	errNotFound  = errors.New("process not found")
-	matchMeta    = func(p *Process, m *C.Metadata) bool { return false }
-
 	getExTcpTable uintptr
 	getExUdpTable uintptr
 	queryProcName uintptr
@@ -67,50 +58,7 @@ func initWin32API() error {
 	return nil
 }
 
-type Process struct {
-	adapter C.AdapterName
-	process string
-}
-
-func (p *Process) RuleType() C.RuleType {
-	return C.Process
-}
-
-func (p *Process) Adapter() C.AdapterName {
-	return p.adapter
-}
-
-func (p *Process) Payload() string {
-	return p.process
-}
-
-func (p *Process) ShouldResolveIP() bool {
-	return false
-}
-
-func match(p *Process, metadata *C.Metadata) bool {
-	key := fmt.Sprintf("%s:%s:%s", metadata.NetWork.String(), metadata.SrcIP.String(), metadata.SrcPort)
-	cached, hit := processCache.Get(key)
-	if !hit {
-		processName, err := resolveProcessName(metadata)
-		if err != nil {
-			log.Debugln("[%s] Resolve process of %s failed: %s", C.Process.String(), key, err.Error())
-		}
-
-		processCache.Set(key, processName)
-		cached = processName
-	}
-	return strings.EqualFold(cached.(string), p.process)
-}
-
-func (p *Process) Match(metadata *C.Metadata) *C.AdapterName {
-	if matchMeta(p, metadata) {
-		return &p.adapter
-	}
-	return nil
-}
-
-func NewProcess(process string, adapter C.AdapterName) (*Process, error) {
+func findProcessName(network string, ip net.IP, srcPort int) (string, error) {
 	once.Do(func() {
 		err := initWin32API()
 		if err != nil {
@@ -118,16 +66,7 @@ func NewProcess(process string, adapter C.AdapterName) (*Process, error) {
 			log.Warnln("All PROCESS-NAMES rules will be skiped")
 			return
 		}
-		matchMeta = match
 	})
-	return &Process{
-		adapter: adapter,
-		process: process,
-	}, nil
-}
-
-func resolveProcessName(metadata *C.Metadata) (string, error) {
-	ip := metadata.SrcIP
 	family := windows.AF_INET
 	if ip.To4() == nil {
 		family = windows.AF_INET6
@@ -135,20 +74,15 @@ func resolveProcessName(metadata *C.Metadata) (string, error) {
 
 	var class int
 	var fn uintptr
-	switch metadata.NetWork {
-	case C.TCP:
+	switch network {
+	case TCP:
 		fn = getExTcpTable
 		class = tcpTablePidConn
-	case C.UDP:
+	case UDP:
 		fn = getExUdpTable
 		class = udpTablePid
 	default:
 		return "", ErrInvalidNetwork
-	}
-
-	srcPort, err := strconv.Atoi(metadata.SrcPort)
-	if err != nil {
-		return "", err
 	}
 
 	buf, err := getTransportTable(fn, family, class)
@@ -156,7 +90,7 @@ func resolveProcessName(metadata *C.Metadata) (string, error) {
 		return "", err
 	}
 
-	s := newSearcher(family == windows.AF_INET, metadata.NetWork == C.TCP)
+	s := newSearcher(family == windows.AF_INET, network == TCP)
 
 	pid, err := s.Search(buf, ip, uint16(srcPort))
 	if err != nil {
@@ -199,14 +133,15 @@ func (s *searcher) Search(b []byte, ip net.IP, port uint16) (uint32, error) {
 		}
 
 		srcIP := net.IP(row[s.ip : s.ip+s.ipSize])
-		if !ip.Equal(srcIP) {
+		// windows binds an unbound udp socket to 0.0.0.0/[::] while first sendto
+		if !ip.Equal(srcIP) && (!srcIP.IsUnspecified() || s.tcpState != -1) {
 			continue
 		}
 
 		pid := readNativeUint32(row[s.pid : s.pid+4])
 		return pid, nil
 	}
-	return 0, errNotFound
+	return 0, ErrNotFound
 }
 
 func newSearcher(isV4, isTCP bool) *searcher {
