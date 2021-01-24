@@ -9,7 +9,7 @@ import (
 
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/log"
-	T "github.com/whtsky/clash/tunnel"
+	"github.com/whtsky/clash/tunnel/statistic"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -143,7 +143,7 @@ func traffic(w http.ResponseWriter, r *http.Request) {
 
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
-	t := T.DefaultManager
+	t := statistic.DefaultManager
 	buf := &bytes.Buffer{}
 	var err error
 	for range tick.C {

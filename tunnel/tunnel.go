@@ -12,13 +12,15 @@ import (
 	"github.com/whtsky/clash/component/nat"
 	"github.com/whtsky/clash/component/resolver"
 	C "github.com/whtsky/clash/constant"
+	"github.com/whtsky/clash/context"
 	"github.com/whtsky/clash/log"
 	"github.com/whtsky/clash/rules"
+	"github.com/whtsky/clash/tunnel/statistic"
 )
 
 var (
-	tcpQueue   = make(chan C.ServerAdapter)
-	udpQueue   = make(chan *inbound.PacketAdapter)
+	tcpQueue   = make(chan C.ConnContext, 200)
+	udpQueue   = make(chan *inbound.PacketAdapter, 200)
 	natTable   = nat.New()
 	rawRules   []C.Rule
 	routeRules []C.Rule
@@ -38,8 +40,8 @@ func init() {
 }
 
 // Add request to queue
-func Add(req C.ServerAdapter) {
-	tcpQueue <- req
+func Add(ctx C.ConnContext) {
+	tcpQueue <- ctx
 }
 
 // AddPacket add udp Packet to queue
@@ -160,7 +162,7 @@ func preHandleMetadata(metadata *C.Metadata) error {
 	return nil
 }
 
-func resolveMetadata(metadata *C.Metadata) (proxy C.Proxy, rule C.Rule, elapsed time.Duration, err error) {
+func resolveMetadata(ctx C.PlainContext, metadata *C.Metadata) (proxy C.Proxy, rule C.Rule, elapsed time.Duration, err error) {
 	switch mode {
 	case Direct:
 		proxy = proxies["DIRECT"]
@@ -171,11 +173,8 @@ func resolveMetadata(metadata *C.Metadata) (proxy C.Proxy, rule C.Rule, elapsed 
 		start := time.Now()
 		proxy, rule, err = match(metadata)
 		elapsed = time.Since(start)
-		if err != nil {
-			return nil, nil, elapsed, err
-		}
 	}
-	return proxy, rule, elapsed, nil
+	return
 }
 
 func handleUDPConn(packet *inbound.PacketAdapter) {
@@ -228,7 +227,8 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 			cond.Broadcast()
 		}()
 
-		proxy, rule, elapsed, err := resolveMetadata(metadata)
+		ctx := context.NewPacketConnContext(metadata)
+		proxy, rule, elapsed, err := resolveMetadata(ctx, metadata)
 		if err != nil {
 			log.Warnln("[UDP] Parse metadata failed: %s", err.Error())
 			return
@@ -243,7 +243,9 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 			}
 			return
 		}
-		pc := newUDPTracker(rawPc, DefaultManager, metadata, rule)
+		ctx.InjectPacketConn(rawPc)
+		pc := statistic.NewUDPTracker(rawPc, statistic.DefaultManager, metadata, rule)
+
 		switch true {
 		case rule != nil:
 			log.Infoln(
@@ -279,10 +281,10 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	}()
 }
 
-func handleTCPConn(localConn C.ServerAdapter) {
-	defer localConn.Close()
+func handleTCPConn(ctx C.ConnContext) {
+	defer ctx.Conn().Close()
 
-	metadata := localConn.Metadata()
+	metadata := ctx.Metadata()
 	if !metadata.Valid() {
 		log.Warnln("[Metadata] not valid: %#v", metadata)
 		return
@@ -293,7 +295,7 @@ func handleTCPConn(localConn C.ServerAdapter) {
 		return
 	}
 
-	proxy, rule, elapsed, err := resolveMetadata(metadata)
+	proxy, rule, elapsed, err := resolveMetadata(ctx, metadata)
 	if err != nil {
 		log.Warnln("[Metadata] parse failed: %s", err.Error())
 		return
@@ -308,7 +310,7 @@ func handleTCPConn(localConn C.ServerAdapter) {
 		}
 		return
 	}
-	remoteConn = newTCPTracker(remoteConn, DefaultManager, metadata, rule)
+	remoteConn = statistic.NewTCPTracker(remoteConn, statistic.DefaultManager, metadata, rule)
 	defer remoteConn.Close()
 
 	switch true {
@@ -335,11 +337,11 @@ func handleTCPConn(localConn C.ServerAdapter) {
 		)
 	}
 
-	switch adapter := localConn.(type) {
-	case *inbound.HTTPAdapter:
-		handleHTTP(adapter, remoteConn)
-	case *inbound.SocketAdapter:
-		handleSocket(adapter, remoteConn)
+	switch c := ctx.(type) {
+	case *context.HTTPContext:
+		handleHTTP(c, remoteConn)
+	default:
+		handleSocket(ctx, remoteConn)
 	}
 }
 
