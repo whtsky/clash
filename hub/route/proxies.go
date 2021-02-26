@@ -9,6 +9,7 @@ import (
 
 	"github.com/whtsky/clash/adapters/outbound"
 	"github.com/whtsky/clash/adapters/outboundgroup"
+	"github.com/whtsky/clash/component/profile/cachefile"
 	C "github.com/whtsky/clash/constant"
 	"github.com/whtsky/clash/tunnel"
 
@@ -91,6 +92,7 @@ func updateProxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cachefile.Cache().SetSelected(proxy.Name(), req.Name)
 	render.NoContent(w, r)
 }
 

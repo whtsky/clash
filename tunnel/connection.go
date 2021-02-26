@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/whtsky/clash/adapters/inbound"
+	N "github.com/whtsky/clash/common/net"
 	"github.com/whtsky/clash/common/pool"
 	"github.com/whtsky/clash/component/resolver"
 	C "github.com/whtsky/clash/constant"
@@ -103,8 +104,13 @@ func handleUDPToRemote(packet C.UDPPacket, pc C.PacketConn, metadata *C.Metadata
 		return errors.New("udp addr invalid")
 	}
 
-	_, err := pc.WriteTo(packet.Data(), addr)
-	return err
+	if _, err := pc.WriteTo(packet.Data(), addr); err != nil {
+		return err
+	}
+	// reset timeout
+	pc.SetReadDeadline(time.Now().Add(udpTimeout))
+
+	return nil
 }
 
 func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, fAddr net.Addr) {
@@ -141,14 +147,16 @@ func relay(leftConn, rightConn net.Conn) {
 
 	go func() {
 		buf := pool.Get(pool.RelayBufferSize)
-		_, err := io.CopyBuffer(leftConn, rightConn, buf)
+		// Wrapping to avoid using *net.TCPConn.(ReadFrom)
+		// See also https://github.com/whtsky/clash/pull/1209
+		_, err := io.CopyBuffer(N.WriteOnlyWriter{Writer: leftConn}, N.ReadOnlyReader{Reader: rightConn}, buf)
 		pool.Put(buf)
 		leftConn.SetReadDeadline(time.Now())
 		ch <- err
 	}()
 
 	buf := pool.Get(pool.RelayBufferSize)
-	io.CopyBuffer(rightConn, leftConn, buf)
+	io.CopyBuffer(N.WriteOnlyWriter{Writer: rightConn}, N.ReadOnlyReader{Reader: leftConn}, buf)
 	pool.Put(buf)
 	rightConn.SetReadDeadline(time.Now())
 	<-ch
