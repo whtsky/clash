@@ -29,7 +29,7 @@ type ShadowSocks struct {
 }
 
 type ShadowSocksOption struct {
-	Name       C.AdapterName `proxy:"name"`
+	Name       C.AdapterName          `proxy:"name"`
 	Server     string                 `proxy:"server"`
 	Port       int                    `proxy:"port"`
 	Password   string                 `proxy:"password"`
@@ -73,12 +73,14 @@ func (ss *ShadowSocks) StreamConn(c net.Conn, metadata *C.Metadata) (net.Conn, e
 	return c, err
 }
 
-func (ss *ShadowSocks) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn, error) {
+func (ss *ShadowSocks) DialContext(ctx context.Context, metadata *C.Metadata) (_ C.Conn, err error) {
 	c, err := dialer.DialContext(ctx, "tcp", ss.addr)
 	if err != nil {
 		return nil, fmt.Errorf("%s connect error: %w", ss.addr, err)
 	}
 	tcpKeepAlive(c)
+
+	defer safeConnClose(c, err)
 
 	c, err = ss.StreamConn(c, metadata)
 	return NewConn(c, ss), err
@@ -92,6 +94,7 @@ func (ss *ShadowSocks) DialUDP(metadata *C.Metadata) (C.PacketConn, error) {
 
 	addr, err := resolveUDPAddr("udp", ss.addr)
 	if err != nil {
+		pc.Close()
 		return nil, err
 	}
 

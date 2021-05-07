@@ -141,6 +141,11 @@ func preHandleMetadata(metadata *C.Metadata) error {
 	if ip := net.ParseIP(metadata.Host); ip != nil {
 		metadata.DstIP = ip
 		metadata.Host = ""
+		if ip.To4() != nil {
+			metadata.AddrType = C.AtypIPv4
+		} else {
+			metadata.AddrType = C.AtypIPv6
+		}
 	}
 
 	// preprocess enhanced-mode metadata
@@ -381,7 +386,7 @@ func match(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
 			}
 
 			if metadata.NetWork == C.UDP && !adapter.SupportUDP() {
-				log.Debugln("%v UDP is not supported", adapter.Name())
+				log.Debugln("%s UDP is not supported", adapter.Name())
 				continue
 			}
 			return adapter, rule, nil

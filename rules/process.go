@@ -53,11 +53,11 @@ func (p *Process) Adapter() C.AdapterName {
 	return p.adapter
 }
 
-func (p *Process) Payload() string {
-	return p.process
+func (ps *Process) Payload() string {
+	return ps.process
 }
 
-func (p *Process) ShouldResolveIP() bool {
+func (ps *Process) ShouldResolveIP() bool {
 	return false
 }
 
